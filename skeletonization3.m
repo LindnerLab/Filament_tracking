@@ -39,8 +39,8 @@ bnd = bwboundaries(BI,'noholes'); % find boundary coordinates of all objects in 
 % smooth the edges of each objects in the FOV, then recontruct a binary image for each objects 
  for i = 1 : FilNum
 clear xc yc
-xc = smooth(bnd{i}(:,1),1);
-yc = smooth(bnd{i}(:,2),1);
+xc = smooth(bnd{i}(:,1),1); % data matrix
+yc = smooth(bnd{i}(:,2),10); % how many data are used to average (last number); here, 10.
 s{i} = transpose(poly2mask(xc,yc,size(skel,2),size(skel,1)));
  end
 % sum all objects, with smoothed edges, to recontruct the original binary image
