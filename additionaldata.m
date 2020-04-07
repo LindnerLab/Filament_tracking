@@ -54,8 +54,8 @@ for j = 1 : xy.nframe
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
 % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
-    C(j) = sqrt(nx(j)^2 + (nz(j)^2/lambda^2))/ny(j);
-    Cm(j) = sign(C(j))/(1+abs(C(j)));
+    C(j) = sqrt(nx(j)^2 + (nz(j)^2/lambda^2))/ny(j); %!!!! need to fix the time instead of the frame nb
+    Cm(j) = sign(C(j))/(1+abs(C(j))); %!!!! need to fix the time instead of the frame nb
 end
 
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
@@ -74,6 +74,11 @@ plot(expofit,T_Xcorr,T_Ycorr);
 a = expofit.a;
 tau = -1/expofit.b;
 
+% JEFFERY OSCILLATION PERIOD
+%!!!! Need to determine gammadot for my experiments
+gammadot = 18; %shear rate (in s-1); 18 s-1 is the value given by Zöttl et al.
+tJ = (2*pi*(lambda + 1/lambda))/gammadot; %Jeffery oscillation period (according to Zöttl et al., 2019)
+
 % WRITING OUT THE VARIABLE OF INTEREST IN AN EXCEL FILE
 % * DATA (SHEET 1)
 %
@@ -86,6 +91,7 @@ xlswrite(filename,{'Jeff. C'},'Feuil1','E1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
 xlswrite(filename,{'Expofit coeff a'},'Feuil1','G1');
 xlswrite(filename,{'Expofit coeff tau'},'Feuil1','H1');
+xlswrite(filename,{'Jeff. period tJ'},'Feuil1','I1');
 % ** Writing out data by columns on the Excel sheet 1
 % Using transpose() because data are by default organized in rows instead of columns
 writematrix(transpose(Lpinmicrons),filename,'Sheet',1, 'Range', 'A2');
@@ -96,6 +102,8 @@ writematrix(transpose(C),filename,'Sheet',1, 'Range', 'E2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'F2');
 writematrix(a,filename,'Sheet',1,'Range','G2');
 writematrix(tau,filename,'Sheet',1,'Range','H2');
+writematrix(tJ,filename,'Sheet',1,'Range','I2');
+
 %
 % * PARAMETERS (SHEET 2)
 %
@@ -136,7 +144,7 @@ for j = 1 : xy.nframe
         if ismember(j+1,xy.emptyframe) == 0 %ismember tells if the j+1 element belongs to the xy.frame array
             writematrix(xy.frame(j+1)-xy.frame(j),filename,'Sheet',2,'Range','B3');
         end
-    end % sometimes the loop ends and no value was found for the step if the first if is not verified. Need to improve this.
+    end %!!!! sometimes the loop ends and no value was found for the step if the first if is not verified. Need to improve this.
 end
 % Last frame treated (this number + nb of empty frames = total number of frames asked to treat)
 writematrix(xy.frame(xy.nframe),filename,'Sheet',2,'Range','B4');
