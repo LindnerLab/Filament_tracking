@@ -32,6 +32,10 @@ longueur = 8.301;
 % * Aspect ratio
 lambda = longueur/pitch;
 % * Average length based on arclen in microns (arclenMic)
+for j = 1 : xy.nframe
+    % Projected arc length Arclen in the xy plane in microns
+    arclenMic(j) = xy.arclen(j)*100/1024;
+end
 Lmean = sum(arclenMic)/xy.nframe;
 
 % Incremental variables calculations
@@ -39,8 +43,6 @@ for j = 1 : xy.nframe
 % Projected length Lp in the xy plane in microns
     Lp(j) = sqrt((xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1))^2+(xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))^2);
     Lpinmicrons(j) = Lp(j)/10.24; %10.24 is the conversion factor pixel/degrees for imgs of 1024x1024 of 100x100microns
-% Projected arc length Arclen in the xy plane in microns
-    arclenMic(j) = xy.arclen(j)*100/1024;
 % Angle Phi (projection in the xy plane) in degrees
     phi(j) = atan( (xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))/(xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1)) );
     phiindeg(j) = phi(j) * 180 / pi;
@@ -70,9 +72,9 @@ xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
 % ** Row titles for the Parameters sheet
 %
 xlswrite(filename,{'FRAMES INFO'},'Feuil2','A1');
-xlswrite(filename,{'First frame index'},'Feuil2','A2');
+xlswrite(filename,{'First frame treated'},'Feuil2','A2');
 xlswrite(filename,{'Frame step'},'Feuil2','A3');
-xlswrite(filename,{'Final frame index'},'Feuil2','A4');
+xlswrite(filename,{'Final frame treated'},'Feuil2','A4');
 xlswrite(filename,{'Nb of empty frames'},'Feuil2','A5');
 %
 xlswrite(filename,{'FLAGELLUM INFO'},'Feuil2','A6');
@@ -106,10 +108,19 @@ writematrix(transpose(C),filename,'Sheet',1, 'Range', 'E2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'F2');
 %
 % * Writing out parameters in rows on the Excel sheet 2
-%
+% ** First frame
 writematrix(xy.frame(1),filename,'Sheet',2,'Range','B2');
-writematrix(xy.frame(length(xy.frame))/xy.nframe,filename,'Sheet',2,'Range','B3');
-writematrix(xy.nframe,filename,'Sheet',2,'Range','B4');
+% ** Frame step chosen
+for j = 1 : xy.nframe
+    if xy.frame(j) == j
+        if ismember(j+1,xy.emptyframe) == 0 %ismember tells if the j+1 element belongs to the xy.frame array
+            writematrix(xy.frame(j+1)-xy.frame(j),filename,'Sheet',2,'Range','B3');
+        end
+    end
+end
+% Last frame treated (this number + nb of empty frames = total number of frames asked to treat)
+writematrix(xy.frame(xy.nframe),filename,'Sheet',2,'Range','B4');
+% Nb of empty frames
 writematrix(length(xy.emptyframe),filename,'Sheet',2,'Range','B5');
 %
 writematrix(pitch,filename,'Sheet',2,'Range','B7');
@@ -139,7 +150,7 @@ ewb.Worksheets.Item(2).Name = 'Parameters'; % # rename 2nd sheet
 ewb.Worksheets.Item(2).Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1
 ewb.Worksheets.Item(2).Range('A6:B6').Interior.Color=hex2dec('F0F4C3'); % # color row A6
 ewb.Worksheets.Item(2).Range('A11:B11').Interior.Color=hex2dec('F0F4C3'); % # color row A11
-ewb.Save % # save to the same file
+ewb.Save;
 ewb.Close(false)
 e.Quit
 
