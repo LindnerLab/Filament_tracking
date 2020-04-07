@@ -61,18 +61,18 @@ end
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
 % * Y coordinates stored within a variable
 % * X coordinates are 1,2,3... as numerous as the number of lags since the function is discretized
-Ycorr = real(autocorr(Cm,'Numlags',100)); %real() is the real part of Cm, which are complex numbers
-Xcorr = (1:101);
+Ycorr = real(autocorr(Cm,'Numlags',70)); %real() is the real part of Cm, which are complex numbers
+Xcorr = (1:71);
 % * For the fit, Xcorr and Ycorr must be column vectors
 T_Ycorr = transpose(Ycorr);
 T_Xcorr = transpose(Xcorr);
-% Exponential fit for a simple exponential a * exp(b * t)
+% Exponential fit for a simple exponential a * exp(b * t) = a * exp(-t/tau)
 % For fits, coordinates must be column vectors
 expofit = fit(T_Xcorr,T_Ycorr,'exp1');
 plot(expofit,T_Xcorr,T_Ycorr);
 % Harvesting expofit coefficients
 a = expofit.a;
-tau = 1/expofit.b;
+tau = -1/expofit.b;
 
 % WRITING OUT THE VARIABLE OF INTEREST IN AN EXCEL FILE
 % * DATA (SHEET 1)
@@ -84,6 +84,8 @@ xlswrite(filename,{'Phi (deg)'},'Feuil1','C1');
 xlswrite(filename,{'nz (µm)'},'Feuil1','D1');
 xlswrite(filename,{'Jeff. C'},'Feuil1','E1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
+xlswrite(filename,{'Expofit coeff a'},'Feuil1','G1');
+xlswrite(filename,{'Expofit coeff tau'},'Feuil1','H1');
 % ** Writing out data by columns on the Excel sheet 1
 % Using transpose() because data are by default organized in rows instead of columns
 writematrix(transpose(Lpinmicrons),filename,'Sheet',1, 'Range', 'A2');
@@ -92,6 +94,8 @@ writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'C2');
 writematrix(transpose(nz),filename,'Sheet',1, 'Range', 'D2');
 writematrix(transpose(C),filename,'Sheet',1, 'Range', 'E2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'F2');
+writematrix(a,filename,'Sheet',1,'Range','G2');
+writematrix(tau,filename,'Sheet',1,'Range','H2');
 %
 % * PARAMETERS (SHEET 2)
 %
