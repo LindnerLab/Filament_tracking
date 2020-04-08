@@ -61,8 +61,8 @@ end
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
 % * Y coordinates stored within a variable
 % * X coordinates are 1,2,3... as numerous as the number of lags since the function is discretized
-Ycorr = real(autocorr(Cm,'Numlags',70)); %real() is the real part of Cm, which are complex numbers
-Xcorr = (1:71);
+Ycorr = real(autocorr(Cm,'Numlags',40)); %real() is the real part of Cm, which are complex numbers
+Xcorr = (1:41);
 % * For the fit, Xcorr and Ycorr must be column vectors
 T_Ycorr = transpose(Ycorr);
 T_Xcorr = transpose(Xcorr);
@@ -79,6 +79,14 @@ tau = -1/expofit.b;
 gammadot = 18; %shear rate (in s-1); 18 s-1 is the value given by Zöttl et al.
 tJ = (2*pi*(lambda + 1/lambda))/gammadot; %Jeffery oscillation period (according to Zöttl et al., 2019)
 
+% ROTATIONAL DIFFUSION TIME 
+kb = 1.38064852 * 10^(-23); % Boltzmann constant in m2 kg s-2 K-1
+T = 25 + 273.15; % Temperature in Kelvin
+eta = 2.00*10^-4; % dynamic viscosity in Pa.s (taken from Viscometry files measuring the apparent viscosity of bacterial suspension in dairy media)
+R = 8 * 10^(-6); % radius of an equivalent sphere in m (taken: length of the filament; !!!! can be optimized if the equivalent radius is calculated!)
+Dr = (kb * T) / (8*pi*eta*R^3); % rotational diffusion coefficient (Einstein-Smoluchowski equation)
+tau_r = 1/(2*Dr); %ideal rotational diffusion time for a sphere
+
 % WRITING OUT THE VARIABLE OF INTEREST IN AN EXCEL FILE
 % * DATA (SHEET 1)
 %
@@ -92,6 +100,7 @@ xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
 xlswrite(filename,{'Expofit coeff a'},'Feuil1','G1');
 xlswrite(filename,{'Expofit coeff tau'},'Feuil1','H1');
 xlswrite(filename,{'Jeff. period tJ'},'Feuil1','I1');
+xlswrite(filename,{'Rot. diff. time tau_r'},'Feuil1','J1');
 % ** Writing out data by columns on the Excel sheet 1
 % Using transpose() because data are by default organized in rows instead of columns
 writematrix(transpose(Lpinmicrons),filename,'Sheet',1, 'Range', 'A2');
@@ -103,6 +112,7 @@ writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'F2');
 writematrix(a,filename,'Sheet',1,'Range','G2');
 writematrix(tau,filename,'Sheet',1,'Range','H2');
 writematrix(tJ,filename,'Sheet',1,'Range','I2');
+writematrix(tau_r,filename,'Sheet',1,'Range','J2');
 
 %
 % * PARAMETERS (SHEET 2)
