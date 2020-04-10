@@ -80,22 +80,28 @@ tau = -1/expofit.b;
 gammadot = 18; %shear rate (in s-1); 18 s-1 is the value given by Zöttl et al.
 tJ = (2*pi*(lambda + 1/lambda))/gammadot; %Jeffery oscillation period (according to Zöttl et al., 2019)
 
-% ROTATIONAL DIFFUSION TIME 
-kb = 1.38064852 * 10^(-23); % Boltzmann constant in m2 kg s-2 K-1
-T = 25 + 273.15; % Temperature in Kelvin
-eta = 10^-3; % dynamic viscosity in Pa.s (dynamic viscosity of water as a first pass)
-R = 8 * 10^(-6); % radius of an equivalent sphere in m (taken: length of the filament; !!!! can be optimized if the equivalent radius is calculated!)
-%Drsphere = (kb * T) / (8*pi*eta*R^3); % rotational diffusion coefficient (Stokes-Einstein relationship)
-% * Adaptation of the Stokes-Einstein relationship by Perrin (1936) to prolate bodies 
-a =(fil_length/2)*10^(-6); % half-length of the filament in m
-b = (diameter/2)*10^-6; % half-width of the filament in m
-p = a/b; %new aspect ratio needed for Nuris' diffusion coefficient formula (cf. her thesis p.47).
-%Dr = (kb * T) / (6*pi*eta*(((a^2-b^2)^(1/2)) / log((a+(a^2-b^2)^(1/2))/b^2))); % Saverio's adapted diffusion coefficient to prolates (cf. p. 40 of my notebook) 
-Dr = (kb * T) / (6*eta*V*g); % Nuris' formula (eq. 10)
-V = (4*pi*a*b^2)/3; % Volume of a prolate ellipsoid (Nuris' thesis)
-S = (1 / sqrt(p^2-1)) * log(p+sqrt(p^2-1)); % Nuris' formula (eq. 12)
-g = (2*(p^4-1)) / (3 * p * ((2*p^2-1)*S - p)); % Nuris' formula (eq. 11)
-tau_r = 1/(2*Dr); % rotational diffusion time
+% ROTATIONAL DIFFUSION TIME FOR PROLATE BODIES
+% * Boltzmann constant kb in m2 kg s-2 K-1
+% * T Temperature in Kelvin
+% * eta dynamic viscosity in Pa.s (dynamic viscosity of water used as a first pass)
+kb = 1.38064852 * 10^(-23);
+T = 25 + 273.15; 
+eta = 10^-3; 
+% * a half-length of the filament in m
+% * b half-width of the filament in m
+% * p new aspect ratio needed for Nuris' diffusion coefficient formula (cf. her thesis p.47).
+% * V Volume of a prolate ellipsoid in m3 (Nuris' thesis)
+% * g and S coefficients adapted to prolate ellipsoids (Nuris'formula eq. 11 and 12)
+% * Dr diffusion coefficient for a prolate ellipsoid; Nuris' formula (eq. 10)
+a =(fil_length/2)*10^(-6); 
+b = (diameter/2)*10^-6; 
+p = a/b;
+V = (4*pi*a*b^2)/3; 
+S = (1 / sqrt(p^2-1)) * log(p+sqrt(p^2-1));
+g = (2*(p^4-1)) / (3 * p * ((2*p^2-1)*S - p));
+Dr = (kb * T) / (6*eta*V*g);
+% Rotation diffusion time
+tau_r = 1/(2*Dr);
 
 % WRITING OUT THE VARIABLE OF INTEREST IN AN EXCEL FILE
 % * DATA (SHEET 1)
