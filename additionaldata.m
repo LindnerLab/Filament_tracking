@@ -96,7 +96,7 @@ tau = (-FSav/expofit.b);
 % * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
 % * tJ is the Jeffery oscillation period (in s) according to Zöttl et al., 2019
 % * Losingmemory is the number of Jeffery oscillations a filament performs before losing memory about its Jeffery orbit state
-gammadot = 18; 
+gammadot = 6.3; 
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
 Losingmemory = tau/tJ;
 
