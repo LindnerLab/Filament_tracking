@@ -93,8 +93,8 @@ tau = (-FSav/expofit.b);
 
 % JEFFERY OSCILLATION PERIOD
 %!!!! Need to determine gammadot for my experiments
-% * gammadot is the shear rate (in s-1); 18 s-1 is the value given by ZÃ¶ttl et al (default value here)
-% * tJ is the Jeffery oscillation period (in s) according to ZÃ¶ttl et al., 2019
+% * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
+% * tJ is the Jeffery oscillation period (in s) according to Zöttl et al., 2019
 % * Losingmemory is the number of Jeffery oscillations a filament performs before losing memory about its Jeffery orbit state
 gammadot = 18; 
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
@@ -125,18 +125,18 @@ tau_r = 1/(2*Dr);
 
 % WRITING OUT THE VARIABLES OF INTEREST IN AN EXCEL FILE
 % * DATA (SHEET 1)
-%
+% 
 % ** Column titles for the Data sheet
-xlswrite(filename,{'Lp (Âµm)'},'Feuil1','A1');
-xlswrite(filename,{'Arclen (Âµm)'},'Feuil1','B1');
+xlswrite(filename,{'Lp (µm)'},'Feuil1','A1');
+xlswrite(filename,{'Arclen (µm)'},'Feuil1','B1');
 xlswrite(filename,{'Phi (deg)'},'Feuil1','C1');
-xlswrite(filename,{'nz (Âµm)'},'Feuil1','D1');
+xlswrite(filename,{'nz (µm)'},'Feuil1','D1');
 xlswrite(filename,{'Jeff. C'},'Feuil1','E1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
 xlswrite(filename,{'Expofit coeff a'},'Feuil1','G1');
-xlswrite(filename,{'Expofit coeff tau'},'Feuil1','H1');
-xlswrite(filename,{'Jeff. period tJ'},'Feuil1','I1');
-xlswrite(filename,{'Rot. diff. time tau_r'},'Feuil1','J1');
+xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','H1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','I1');
+xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','J1');
 xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','K1');
 %
 % ** Writing out data by columns on the Excel sheet 1
@@ -158,33 +158,35 @@ writematrix(Losingmemory,filename,'Sheet',1,'Range','K2');
 % ** Row titles for the Frames and Flagellum sheet
 xlswrite(filename,{'FRAMES INFO'},'Feuil2','A1');
 xlswrite(filename,{'Frequence (Hz)'},'Feuil2','A2');
-xlswrite(filename,{'Frame step (s)'},'Feuil2','A3');
-xlswrite(filename,{'Average frame step (s)'},'Feuil2','A4');
-xlswrite(filename,{'First frame treated'},'Feuil2','A5');
-xlswrite(filename,{'Final frame treated'},'Feuil2','A6');
-xlswrite(filename,{'Chosen number of frames'},'Feuil2','A7');
-xlswrite(filename,{'Nb of treated frames'},'Feuil2','A8');
-xlswrite(filename,{'Nb of empty frames'},'Feuil2','A9');
-xlswrite(filename,{'FLAGELLUM INFO'},'Feuil2','A10');
-xlswrite(filename,{'Diameter (Âµm)'},'Feuil2','A11');
-xlswrite(filename,{'Length (Âµm)'},'Feuil2','A12');
-xlswrite(filename,{'Aspect ratio lambda'},'Feuil2','A13');
-xlswrite(filename,{'Average length Lmean (Âµm)'},'Feuil2','A14');
+xlswrite(filename,{'Frame step (dimensionless)'},'Feuil2','A3');
+xlswrite(filename,{'Frame step (s)'},'Feuil2','A4');
+xlswrite(filename,{'Average frame step (s)'},'Feuil2','A5');
+xlswrite(filename,{'First frame treated'},'Feuil2','A6');
+xlswrite(filename,{'Final frame treated'},'Feuil2','A7');
+xlswrite(filename,{'Chosen number of frames'},'Feuil2','A8');
+xlswrite(filename,{'Nb of treated frames'},'Feuil2','A9');
+xlswrite(filename,{'Nb of empty frames'},'Feuil2','A10');
+xlswrite(filename,{'FLAGELLUM INFO'},'Feuil2','A11');
+xlswrite(filename,{'Diameter (µm)'},'Feuil2','A12');
+xlswrite(filename,{'Length (µm)'},'Feuil2','A13');
+xlswrite(filename,{'Aspect ratio lambda'},'Feuil2','A14');
+xlswrite(filename,{'Average length Lmean (µm)'},'Feuil2','A15');
 %
 % Writing out data by rows on the Excel sheet 2
 writematrix(F,filename,'Sheet',2,'Range','B2');
-writematrix(FS,filename,'Sheet',2,'Range','B3');
-writematrix(FSav,filename,'Sheet',2,'Range','B4');
-writematrix(in_frame,filename,'Sheet',2,'Range','B5');
-writematrix(fin_frame,filename,'Sheet',2,'Range','B6');
-writematrix(total,filename,'Sheet',2,'Range','B7');
-writematrix(xy.nframe,filename,'Sheet',2,'Range','B8');
-writematrix(length(xy.emptyframe),filename,'Sheet',2,'Range','B9');
+writematrix(step,filename,'Sheet',2,'Range','B3');
+writematrix(FS,filename,'Sheet',2,'Range','B4');
+writematrix(FSav,filename,'Sheet',2,'Range','B5');
+writematrix(in_frame,filename,'Sheet',2,'Range','B6');
+writematrix(fin_frame,filename,'Sheet',2,'Range','B7');
+writematrix(total,filename,'Sheet',2,'Range','B8');
+writematrix(xy.nframe,filename,'Sheet',2,'Range','B9');
+writematrix(length(xy.emptyframe),filename,'Sheet',2,'Range','B10');
 %
-writematrix(diameter,filename,'Sheet',2,'Range','B11');
-writematrix(fil_length,filename,'Sheet',2,'Range','B12');
-writematrix(lambda,filename,'Sheet',2,'Range','B13');
-writematrix(Lmean,filename,'Sheet',2,'Range','B14');
+writematrix(diameter,filename,'Sheet',2,'Range','B12');
+writematrix(fil_length,filename,'Sheet',2,'Range','B13');
+writematrix(lambda,filename,'Sheet',2,'Range','B14');
+writematrix(Lmean,filename,'Sheet',2,'Range','B15');
 %
 % * CODE PARAMETERS (SHEET 3)
 %
@@ -223,9 +225,9 @@ ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Fran
 ewb.Worksheets.Item(1).Name = 'Data'; % # rename 1st sheet
 ewb.Worksheets.Item(2).Name = 'Frames and Flagellum'; % # rename 2nd sheet
 ewb.Worksheets.Item(3).Name = 'Code Parameters'; % # rename 3rd sheet
-ewb.Worksheets.Item(2).Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 in sheet 2
-ewb.Worksheets.Item(2).Range('A7:B7').Interior.Color=hex2dec('F0F4C3'); % # color row A6 in sheet 2
-ewb.Worksheets.Item(3).Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 in sheet 3
+ewb.Worksheets.Item(2).Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - FRAMES in sheet 2
+ewb.Worksheets.Item(2).Range('A11:B11').Interior.Color=hex2dec('F0F4C3'); % # color row A11 - FLAGELLUM in sheet 2
+ewb.Worksheets.Item(3).Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - CODE in sheet 3
 ewb.Save;
 ewb.Close(false)
 e.Quit
