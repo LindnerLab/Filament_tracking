@@ -8,7 +8,7 @@
 % *  FIND THE ENDPOINTS OF THE CENTERLINE. 
 % *  ORDER THE COORDINATES STARTING FROM ONE ENDPOINT, UNTIL THE WHOLE CENTERLINE HAS BEEN COVERED.
 % *  CALCULATE THE ARC LENGTH OF THE CENTERLINE
-% *  DISREGARD FRAMES WHERE THE CENTERLINE IS TOO SHORT OR TOO LONG (WHIT RESPECT TO THE MEAN ARC LENGTH)
+% *  DISREGARD FRAMES WHERE THE CENTERLINE IS TOO SHORT OR TOO LONG (WITH RESPECT TO THE MEAN ARC LENGTH)
 % *  INTERPOLATE THE CENTERLINE SHAPE USING B-SPLINE FUNCTIONS
 %
 % IMPORTANT NOTES:  
@@ -49,9 +49,9 @@
 % PROPERTY ARE:
 %     crd = cell containing the x-y coordinates of the skeleton --> x = first column, y = second column
 %     centroid = cell containing the x-y coordinates of the centroid of the skeleton
-%     arclen = 1-d array of arc lengths of the skeleton                     
+%     arclen = 1-d array of the number of arc lengths of the skeleton                     
 %     seglen = cell containing the length of each segment in the skeleton  
-%     emptyframe = 1-d array of frame where the filament cannot be detected   
+%     emptyframe = 1-d array of frames where the filament cannot be detected   
 %     frame = frame number in the original tiff file
 %     nframes = total number of frames in which the filament has been detected 
 %     spl = cell containing the x-y coordinates of the B-spline --> x = first column, y = second column
@@ -70,38 +70,37 @@
 % *         xy(2).emptyframe gives the list of frames where the filament 2 has not been detected
 % *         xy(1).arclen(756) gives the arc length of filament 2 when j = 756
 %
-% THE REULTS ARE STORED IN A MATLAB FILE CALLED "trajectory_filename_batch#.mat" where:  
+% THE RESULTS ARE STORED IN A MATLAB FILE CALLED "trajectory_filename_batch#.mat" where:  
 % *   filename is the SAME name (without extension) of the tiff file 
 % *   # is the batch number where the results are stored
 
 %% CODE
 % path of the experiment
-basepath='D:\Zhibo-actin filament+pillars\';
+basepath='C:\Users\Faustine\Documents\POSTDOC\Code Francesco\Crop_total\ALL\';
 % name of the file to read
-tifname='filaments_in_porous_media_gravity_1nM_500pL_No2.tif';
+tifname='Mult.tif';
 % batch number where storing the results
 batch = 1; 
 % number of filaments in the current image sequence
 FilNum=1; 
 
-
 % define some parameters for the fibermetric filtering
 % fibermetric works better if the elongated object has a constant thickness across the image
-thickness = 7; % thickness of the filament in px 
-structsensitivity = 2.55; % threshold for differentiating the tubular structure from the background
+thickness = 9; % tried: 9; default: 7 (needs to be an integer); thickness of the filament in px 
+structsensitivity = 1.6; % tried: 1.6; default: 2.55; threshold for differentiating the tubular structure from the background
 
 % define some parameters for the gaussian blur
-lnoise = 3; % characteristic lengthscale of noise in pixels
-lobject = 15; % typical object size
-threshold = 0.05; % threshhold for setting pixels to 0 after convolution with gaussian kernel
+lnoise = 3; % default: 3; characteristic lengthscale of noise in pixels
+lobject = 15; % default: 15; typical object size
+threshold = 0.05; % default: 0.05; threshhold for setting pixels to 0 after convolution with gaussian kernel
 
 % define some parameters for morphological operations
-sensitivity=0.900; % sensitivity for adaptive image binarization 
-MinBranchLength=50; % minimum branch length, in pixel, to be accepted in the skel function
+sensitivity=0.9; % default: 0.900 (needs to be =< 1); sensitivity for adaptive image binarization 
+MinBranchLength=50; % default: 50; minimum branch length, in pixel, to be accepted in the skel function
 
 % define some parameters for b-spline fitting procedure
-ds = 5; % constant segment length (in px) used for spacing the reference points in the B-spline fitting
-npnts = 5; % number of points per interval in the recontructed B-spline centerline
+ds = 5; % default: 5; augmenter : moins bon fit; constant segment length (in px) used for spacing the reference points in the B-spline fitting
+npnts = 5; % default: 5; number of points per interval in the recontructed B-spline centerline
 
 %% RESULTS
 

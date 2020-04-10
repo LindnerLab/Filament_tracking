@@ -93,8 +93,8 @@ tau = (-FSav/expofit.b);
 
 % JEFFERY OSCILLATION PERIOD
 %!!!! Need to determine gammadot for my experiments
-% * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
-% * tJ is the Jeffery oscillation period (in s) according to Zöttl et al., 2019
+% * gammadot is the shear rate (in s-1); 18 s-1 is the value given by ZÃ¶ttl et al (default value here)
+% * tJ is the Jeffery oscillation period (in s) according to ZÃ¶ttl et al., 2019
 % * Losingmemory is the number of Jeffery oscillations a filament performs before losing memory about its Jeffery orbit state
 gammadot = 18; 
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
@@ -125,12 +125,12 @@ tau_r = 1/(2*Dr);
 
 % WRITING OUT THE VARIABLES OF INTEREST IN AN EXCEL FILE
 % * DATA (SHEET 1)
-% 
+%
 % ** Column titles for the Data sheet
-xlswrite(filename,{'Lp (µm)'},'Feuil1','A1');
-xlswrite(filename,{'Arclen (µm)'},'Feuil1','B1');
+xlswrite(filename,{'Lp (Âµm)'},'Feuil1','A1');
+xlswrite(filename,{'Arclen (Âµm)'},'Feuil1','B1');
 xlswrite(filename,{'Phi (deg)'},'Feuil1','C1');
-xlswrite(filename,{'nz (µm)'},'Feuil1','D1');
+xlswrite(filename,{'nz (Âµm)'},'Feuil1','D1');
 xlswrite(filename,{'Jeff. C'},'Feuil1','E1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
 xlswrite(filename,{'Expofit coeff a'},'Feuil1','G1');
@@ -166,10 +166,10 @@ xlswrite(filename,{'Chosen number of frames'},'Feuil2','A7');
 xlswrite(filename,{'Nb of treated frames'},'Feuil2','A8');
 xlswrite(filename,{'Nb of empty frames'},'Feuil2','A9');
 xlswrite(filename,{'FLAGELLUM INFO'},'Feuil2','A10');
-xlswrite(filename,{'Diameter (µm)'},'Feuil2','A11');
-xlswrite(filename,{'Length (µm)'},'Feuil2','A12');
+xlswrite(filename,{'Diameter (Âµm)'},'Feuil2','A11');
+xlswrite(filename,{'Length (Âµm)'},'Feuil2','A12');
 xlswrite(filename,{'Aspect ratio lambda'},'Feuil2','A13');
-xlswrite(filename,{'Average length Lmean (µm)'},'Feuil2','A14');
+xlswrite(filename,{'Average length Lmean (Âµm)'},'Feuil2','A14');
 %
 % Writing out data by rows on the Excel sheet 2
 writematrix(F,filename,'Sheet',2,'Range','B2');
