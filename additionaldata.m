@@ -30,8 +30,12 @@ filename = 'additionaldata.xlsx';
 % * diameter (equivalent of Jeffery width i.e. between the top of one side of the helix to the other side of the helix)
 % * fil_length (length of a straight line going from one end of the filament to the other)
 % * lambda = aspect ratio
-diameter = 0.879;
-fil_length = 8.301;
+% Batch 1: diameter = 0.879; fil_length=8.301;
+% Batch 2: diameter = 1.17; fil_length = 8.35;
+% Batch 3: diameter = 0.69; fil_length = 8.77;
+% Batch 4: diameter = 0.869; fil_length = 10.215;
+diameter = 0.977;
+fil_length = 7.887;
 lambda = fil_length/diameter;
 % * Average length based on the projected arclen in the xy plane in microns (arclenMic)
 for j = 1 : xy.nframe
@@ -78,17 +82,19 @@ end
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
 % * Y coordinates stored within a variable
 % * X coordinates are 1,2,3... as numerous as the number of lags since the function is discretized
-Ycorr = real(autocorr(Cm,'Numlags',40)); %real() is the real part of Cm, which are complex numbers
-Xcorr = (1:41);
+Ycorr = real(autocorr(Cm,'Numlags',70)); %real() is the real part of Cm, which are complex numbers
+Xcorr = (1:71)/30;
 % * For the fit, Xcorr and Ycorr must be column vectors
 T_Ycorr = transpose(Ycorr);
 T_Xcorr = transpose(Xcorr);
 % Exponential fit for a simple exponential a * exp(b * k) where k is a nb of frames such as t = k*FSav (t=time)
 % Therefore, converting frames in times, the time constant tau such as exp(-t/tau) -> tau = -FSav/b
+% !!!! Works a lot better with exp2 which is a*exp(b*k) + c*exp(d*k)... But much more complex to analyze in relation to tau.
+% Also tried: power2 (a*k^b+c), which doesn't give a good fit.
 expofit = fit(T_Xcorr,T_Ycorr,'exp1');
 plot(expofit,T_Xcorr,T_Ycorr);
 % Harvesting expofit coefficients
-a = expofit.a;
+fita = expofit.a;
 tau = (-FSav/expofit.b);
 
 % JEFFERY OSCILLATION PERIOD
@@ -96,7 +102,12 @@ tau = (-FSav/expofit.b);
 % * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
 % * tJ is the Jeffery oscillation period (in s) according to Zöttl et al., 2019
 % * Losingmemory is the number of Jeffery oscillations a filament performs before losing memory about its Jeffery orbit state
-gammadot = 6.3; 
+% Batch 1: gammadot = 6.3 using shear_y[250,37] because the filament was determined to be 37microns away from the closest channel wall using ImageJ, and apprx. 250microns away from top and bottom.
+% Batch 2: gammadot = 16.8 using shear_y[250,20]
+% Batch 3: gammadot = 8.797 using shear_y[250,33]
+% Batch 4: gammadot = 7.58 using shear_y[250,35]
+% !!!! in some cases, gammadot changes with time as the filament deviates from a straight line trajectory
+gammadot = 13.04; % shear_y[250,26]
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
 Losingmemory = tau/tJ;
 
@@ -147,7 +158,7 @@ writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'C2');
 writematrix(transpose(nz),filename,'Sheet',1, 'Range', 'D2');
 writematrix(transpose(C),filename,'Sheet',1, 'Range', 'E2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'F2');
-writematrix(a,filename,'Sheet',1,'Range','G2');
+writematrix(fita,filename,'Sheet',1,'Range','G2');
 writematrix(tau,filename,'Sheet',1,'Range','H2');
 writematrix(tJ,filename,'Sheet',1,'Range','I2');
 writematrix(tau_r,filename,'Sheet',1,'Range','J2');
