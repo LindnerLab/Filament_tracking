@@ -34,8 +34,10 @@ filename = 'additionaldata.xlsx';
 % Batch 2: diameter = 1.17; fil_length = 8.35;
 % Batch 3: diameter = 0.69; fil_length = 8.77;
 % Batch 4: diameter = 0.869; fil_length = 10.215;
-diameter = 0.977;
-fil_length = 7.887;
+% Batch 5: diameter = 0.977; fil_length = 7.887;
+% Batch 6: diameter = 0.834; fil_length = 4.844;
+diameter = 0.834;
+fil_length = 4.844;
 lambda = fil_length/diameter;
 % * Average length based on the projected arclen in the xy plane in microns (arclenMic)
 for j = 1 : xy.nframe
@@ -71,12 +73,14 @@ for j = 1 : xy.nframe
     theta(j) = asin( ((lambda * Lp(j)) / (Lmean - 1)) / (lambda - 1));
 % Z coordinate approximated by the theta angle according to Gao et al.
     nz(j) = sin(theta(j));
+    NY(j) = nz(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ; NB: NY(j) will always be positive.
 % X and Y coordinates approximated using Lp
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
-% JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
-    C(j) = sqrt(nx(j)^2 + (nz(j)^2/lambda^2))/ny(j); %!!!! need to fix the time instead of the frame nb
-    Cm(j) = sign(C(j))/(1+abs(C(j))); %!!!! need to fix the time instead of the frame nb
+    NZ(j) = ny(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
+    % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
+    C(j) = sqrt(nx(j)^2 + (NZ(j)^2/lambda^2))/NY(j);
+    Cm(j) = sign(C(j))/(1+abs(C(j)));
 end
 
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
@@ -89,8 +93,6 @@ T_Ycorr = transpose(Ycorr);
 T_Xcorr = transpose(Xcorr);
 % Exponential fit for a simple exponential a * exp(b * k) where k is a nb of frames such as t = k*FSav (t=time)
 % Therefore, converting frames in times, the time constant tau such as exp(-t/tau) -> tau = -FSav/b
-% !!!! Works a lot better with exp2 which is a*exp(b*k) + c*exp(d*k)... But much more complex to analyze in relation to tau.
-% Also tried: power2 (a*k^b+c), which doesn't give a good fit.
 expofit = fit(T_Xcorr,T_Ycorr,'exp1');
 plot(expofit,T_Xcorr,T_Ycorr);
 % Harvesting expofit coefficients
@@ -98,7 +100,6 @@ fita = expofit.a;
 tau = (-FSav/expofit.b);
 
 % JEFFERY OSCILLATION PERIOD
-%!!!! Need to determine gammadot for my experiments
 % * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
 % * tJ is the Jeffery oscillation period (in s) according to Zöttl et al., 2019
 % * Losingmemory is the number of Jeffery oscillations a filament performs before losing memory about its Jeffery orbit state
@@ -106,18 +107,20 @@ tau = (-FSav/expofit.b);
 % Batch 2: gammadot = 16.8 using shear_y[250,20]
 % Batch 3: gammadot = 8.797 using shear_y[250,33]
 % Batch 4: gammadot = 7.58 using shear_y[250,35]
+% Batch 5: gammadot = 13.04 using shear_y[250,26]
+% Batch 6: gammadot = 12.43 using shear_Y[250,27]
 % !!!! in some cases, gammadot changes with time as the filament deviates from a straight line trajectory
-gammadot = 13.04; % shear_y[250,26]
+gammadot = 12.43;
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
 Losingmemory = tau/tJ;
 
 % ROTATIONAL DIFFUSION TIME FOR PROLATE BODIES
 % * Boltzmann constant kb in m2 kg s-2 K-1
-% * T Temperature in Kelvin
+% * T Temperature in Kelvin (ambient temperature)
 % * eta dynamic viscosity in Pa.s (dynamic viscosity of water used as a first pass)
 kb = 1.38064852 * 10^(-23);
-T = 25 + 273.15; 
-eta = 10^-3; 
+T = 20 + 273.15;
+eta = 10^-3;
 % * a half-length of the filament in m
 % * b half-width of the filament in m
 % * p new aspect ratio needed for Nuris' diffusion coefficient formula (cf. her thesis p.47).
@@ -127,7 +130,7 @@ eta = 10^-3;
 a =(fil_length/2)*10^(-6); 
 b = (diameter/2)*10^-6; 
 p = a/b;
-V = (4*pi*a*b^2)/3; 
+V = (4*pi*a*(b^2))/3; 
 S = (1 / sqrt(p^2-1)) * log(p+sqrt(p^2-1));
 g = (2*(p^4-1)) / (3 * p * ((2*p^2-1)*S - p));
 Dr = (kb * T) / (6*eta*V*g);
@@ -141,7 +144,7 @@ tau_r = 1/(2*Dr);
 xlswrite(filename,{'Lp (µm)'},'Feuil1','A1');
 xlswrite(filename,{'Arclen (µm)'},'Feuil1','B1');
 xlswrite(filename,{'Phi (deg)'},'Feuil1','C1');
-xlswrite(filename,{'nz (µm)'},'Feuil1','D1');
+xlswrite(filename,{'NY (µm)'},'Feuil1','D1');
 xlswrite(filename,{'Jeff. C'},'Feuil1','E1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
 xlswrite(filename,{'Expofit coeff a'},'Feuil1','G1');
@@ -155,7 +158,7 @@ xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','K1');
 writematrix(transpose(Lpinmicrons),filename,'Sheet',1, 'Range', 'A2');
 writematrix(transpose(arclenMic),filename,'Sheet',1, 'Range', 'B2');
 writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'C2');
-writematrix(transpose(nz),filename,'Sheet',1, 'Range', 'D2');
+writematrix(transpose(NY),filename,'Sheet',1, 'Range', 'D2');
 writematrix(transpose(C),filename,'Sheet',1, 'Range', 'E2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'F2');
 writematrix(fita,filename,'Sheet',1,'Range','G2');
