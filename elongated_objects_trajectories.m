@@ -18,7 +18,7 @@ imtot=length(InfoImage);
 lzero = max(lobject,ceil(5*lnoise)); % size of each edges where gaussian_blur set values to 0
 
 % path for the result files
-pathout = strcat(basepath,'results\');
+pathout = strcat(basepath,'Results\');
 [status,msg,msgID] = mkdir(pathout);  
 
 
@@ -134,7 +134,7 @@ imshow(labeloverlay(blur_img,L,'Transparency',0))
     case 3
     
 %% skeletonization of the image stack:
-initial_frame=input(strcat('Choose the intial frame in the range 1-',num2str(imtot),' : \n'));
+initial_frame=input(strcat('Choose the initial frame in the range 1-',num2str(imtot),' : \n'));
 frame_step=input(strcat('Choose the step between frames : \n'));
 final_frame=input(strcat('Choose the final frame in the range ',num2str(initial_frame),'-',num2str(imtot),' : \n'));
 framelist = (initial_frame:frame_step:final_frame); 
@@ -221,7 +221,6 @@ save(strcat(file2save,'.mat'),'thickness','structsensitivity','lnoise','lobject'
 
 figure('Name','trajectory');
 for k =1 : xy.nframe
-    
     plot(xy.spl{k}(:,1),xy.spl{k}(:,2))
     hold on
 end

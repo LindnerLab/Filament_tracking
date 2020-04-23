@@ -75,26 +75,12 @@
 % *   # is the batch number where the results are stored
 
 %% CODE
-% Batch 1
-% ** basepath='C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Raw data\ALL\';
-% ** tifname='Mult.tif';
-% Batch 2
-% ** basepath='C:\Users\Faustine\Desktop\2020-03-13_15h30m26s#\Cropped\';
-% ** tifname='All.tif';
-% Batch 3
-% ** basepath='C:\Users\Faustine\Desktop\2020-03-13_15h33m29s#\Cropped\';
-% ** tifname='Mult.tif';
-% Batch 4
-% ** basepath='C:\Users\Faustine\Desktop\2020-03-13_15h34m20s#\Cropped\';
-% ** tifname='Mult.tif';
-
-% Batch 5
 % path of the experiment
-basepath='C:\Users\Faustine\Desktop\2020-03-13_15h42m25s#\Cropped\';
+basepath='C:\Users\Faustine\Documents\POSTDOC\Image treatment\Experiment batches\Batch6-2020-03-13_15h40m57s##\';
 % name of the file to read
-tifname='Mult.tif';
+tifname='Batch6.tif';
 % batch number where storing the results
-batch = 5; 
+batch = 6; 
 % number of filaments in the current image sequence
 FilNum=1; 
 
@@ -105,7 +91,7 @@ structsensitivity = 2; % tried: 1.6; default: 2.55; threshold for differentiatin
 
 % define some parameters for the gaussian blur
 lnoise = 3; % default: 3; characteristic lengthscale of noise in pixels
-lobject = 30; % default: 15; typical object size
+lobject = 15; % default: 15; typical object size
 threshold = 0.05; % default: 0.05; threshhold for setting pixels to 0 after convolution with gaussian kernel
 
 % define some parameters for morphological operations

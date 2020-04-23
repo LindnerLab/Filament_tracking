@@ -4,7 +4,7 @@ function xy = rejectfil(XY,centroid,improc,N_fil,ds,prcs_img,missed,framelist)
 %
 %              WITH THE FOLLOWING STRUCTURE: xy(i).property{j}, WHERE 
 %
-% (i) is the filament label              i = 1...FilNum = number of objects in the stack 
+% (i) is the filament label              i = 1...FilNum = number of objects in the stack (always equal to 1 if only 1 filament) 
 % {j} is the sequential index            j = 1...nframe = number of analyzed frames 
 %
 %              PROPERTY CAN BE:
