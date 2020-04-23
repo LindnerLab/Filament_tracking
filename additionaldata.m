@@ -66,9 +66,6 @@ for j = 1 : xy.nframe
 % Projected length Lp in the xy plane in microns
     Lp(j) = sqrt((xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1))^2+(xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))^2);
     Lpinmicrons(j) = Lp(j)/10.24; %10.24 is the conversion factor pixel/degrees for imgs of 1024x1024 of 100x100microns
-% Angle Phi (projection in the xy plane) in degrees
-    phi(j) = atan( (xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))/(xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1)) );
-    phiindeg(j) = phi(j) * 180 / pi;
 % Angle Theta (approximation of the projection in the xz plane), using Gao et al., Phys. Rev. Lett. 2015
     theta(j) = asin( ((lambda * Lp(j)) / (Lmean - 1)) / (lambda - 1));
 % Z coordinate approximated by the theta angle according to Gao et al.
@@ -78,9 +75,14 @@ for j = 1 : xy.nframe
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
     NZ(j) = ny(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
-    % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
-    C(j) = sqrt(nx(j)^2 + (NZ(j)^2/lambda^2))/NY(j);
-    Cm(j) = sign(C(j))/(1+abs(C(j)));
+% Angle Phi (projection in the xy plane) in degrees
+    %phi(j) = atan( (xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))/(xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1)) );
+    phi(j) = atan( ny(j)/abs(nx(j)));
+    phiindeg(j) = phi(j) * 180 / pi;
+    phiAndreas(j) = (atan(NY(j)/abs(nx(j)))) * 180 / pi;
+% JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
+    CAndreas(j) = sqrt(nx(j)^2 + (NZ(j)^2/lambda^2))/NY(j);
+    Cm(j) = sign(CAndreas(j))/(1+abs(CAndreas(j)));
 end
 
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
@@ -145,13 +147,14 @@ xlswrite(filename,{'Lp (µm)'},'Feuil1','A1');
 xlswrite(filename,{'Arclen (µm)'},'Feuil1','B1');
 xlswrite(filename,{'Phi (deg)'},'Feuil1','C1');
 xlswrite(filename,{'NY (µm)'},'Feuil1','D1');
-xlswrite(filename,{'Jeff. C'},'Feuil1','E1');
-xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','F1');
-xlswrite(filename,{'Expofit coeff a'},'Feuil1','G1');
-xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','H1');
-xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','I1');
-xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','J1');
-xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','K1');
+xlswrite(filename,{'Andreas Jeff. C'},'Feuil1','E1');
+xlswrite(filename,{'Andreas Phi (rad)'},'Feuil1','F1');
+xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','G1');
+xlswrite(filename,{'Expofit coeff a'},'Feuil1','H1');
+xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','I1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','J1');
+xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','K1');
+xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','L1');
 %
 % ** Writing out data by columns on the Excel sheet 1
 % Using transpose() because data are by default organized in rows instead of columns
@@ -159,13 +162,14 @@ writematrix(transpose(Lpinmicrons),filename,'Sheet',1, 'Range', 'A2');
 writematrix(transpose(arclenMic),filename,'Sheet',1, 'Range', 'B2');
 writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'C2');
 writematrix(transpose(NY),filename,'Sheet',1, 'Range', 'D2');
-writematrix(transpose(C),filename,'Sheet',1, 'Range', 'E2');
-writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'F2');
-writematrix(fita,filename,'Sheet',1,'Range','G2');
-writematrix(tau,filename,'Sheet',1,'Range','H2');
-writematrix(tJ,filename,'Sheet',1,'Range','I2');
-writematrix(tau_r,filename,'Sheet',1,'Range','J2');
-writematrix(Losingmemory,filename,'Sheet',1,'Range','K2');
+writematrix(transpose(CAndreas),filename,'Sheet',1, 'Range', 'E2');
+writematrix(transpose(phiAndreas),filename,'Sheet',1, 'Range', 'F2');
+writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'G2');
+writematrix(fita,filename,'Sheet',1,'Range','H2');
+writematrix(tau,filename,'Sheet',1,'Range','I2');
+writematrix(tJ,filename,'Sheet',1,'Range','J2');
+writematrix(tau_r,filename,'Sheet',1,'Range','K2');
+writematrix(Losingmemory,filename,'Sheet',1,'Range','L2');
 %
 % * FRAMES AND FLAGELLUM (SHEET 2)
 %
