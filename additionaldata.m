@@ -68,26 +68,31 @@ for j = 1 : xy.nframe
     Lp(j) = sqrt((xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1))^2+(xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))^2);
     Lpinmicrons(j) = Lp(j)/10.24; %10.24 is the conversion factor pixel/degrees for imgs of 1024x1024 of 100x100microns
 % Angle Theta (approximation of the projection in the xz plane), using Gao et al., Phys. Rev. Lett. 2015
-    theta(j) = asin( ((lambda * Lp(j)) / (Lmean - 1)) / (lambda - 1));
+    theta(j) = asin( ((lambda * Lpinmicrons(j)) / (Lmean - 1)) / (lambda - 1)); %Lmean and Lp should be both in microns
 % Z coordinate approximated by the theta angle according to Gao et al.
     nz(j) = sin(theta(j));
-    nzinmicrons(j) = nz(j)/10.24; 
+    %nzinmicrons(j) = nz(j)/10.24;
     NY(j) = nz(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ; NB: NY(j) will always be positive.
-    NYinmicrons(j) = nzinmicrons(j);
+    UNY(j) = nz(j)/(Lmean*10.24);
+    %NYinmicrons(j) = nzinmicrons(j);
     % X and Y coordinates approximated using Lp
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
-    nxinmicrons(j) = nx(j)/10.24;
+    Unx(j) = nx(j)/ Lp(j); %unit vector director 
+    %nxinmicrons(j) = nx(j)/10.24;
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
-    nyinmicrons(j) = ny(j)/10.24;
+    Uny(j) = ny(j)/Lp(j); %unit vector director 
+    %nyinmicrons(j) = ny(j)/10.24;
     NZ(j) = ny(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
-    NZinmicrons(j) = nyinmicrons(j);
+    UNZ(j) = Uny(j); %UNIT VECTOR: Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
+    %NZinmicrons(j) = nyinmicrons(j);
 % Angle Phi (projection in the xy plane) in degrees
     %phi(j) = atan( (xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))/(xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1)) );
     phi(j) = atan( ny(j)/abs(nx(j)));
     phiindeg(j) = phi(j) * 180 / pi;
     phiAndreas(j) = (atan(NY(j)/abs(nx(j)))) * 180 / pi;
 % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
-    CAndreas(j) = sqrt(nx(j)^2 + (NZ(j)^2/lambda^2))/NY(j);
+    %CAndreas(j) = sqrt(nx(j)^2 + (NZ(j)^2/lambda^2))/NY(j);
+    CAndreas(j) = sqrt(Unx(j)^2 + (UNZ(j)^2/lambda^2))/UNY(j); %WITH UNIT VECTORS
     %Chorizontal(j) = sqrt(nx(j)^2 + (nz(j)^2/lambda^2))/ny(j);
     Cm(j) = sign(CAndreas(j))/(1+abs(CAndreas(j)));
     %Cm(j) = sign(Chorizontal(j))/(1+abs(Chorizontal(j))); % for horizontal Hele-Shaw cells
@@ -157,40 +162,46 @@ tau_r = 1/(2*Dr);
 % * DATA (SHEET 1)
 % 
 % ** Column titles for the Data sheet
-xlswrite(filename,{'Lp (µm)'},'Feuil1','A1');
-xlswrite(filename,{'Arclen (µm)'},'Feuil1','B1');
-xlswrite(filename,{'Phi (deg)'},'Feuil1','C1');
-xlswrite(filename,{'nx (µm)'},'Feuil1','D1');
-xlswrite(filename,{'NY (µm)'},'Feuil1','E1');
-%xlswrite(filename,{'nz (µm)'},'Feuil1','E1'); %for horizontal Hele-Shaw cells
-xlswrite(filename,{'NZ (µm)'},'Feuil1','F1');
-xlswrite(filename,{'Andreas Jeff. C'},'Feuil1','G1');
-%xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','G1'); %for horizontal Hele-Shaw cells
-xlswrite(filename,{'Andreas Phi (rad)'},'Feuil1','H1');
-xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','I1');
-xlswrite(filename,{'Expofit coeff a'},'Feuil1','J1');
-xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','K1');
-xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','L1');
-xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','M1');
-xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','N1');
+xlswrite(filename,{'Frame index'},'Feuil1','A1');
+xlswrite(filename,{'Frame n°'},'Feuil1','B1');
+xlswrite(filename,{'Time (s)'},'Feuil1','C1');
+xlswrite(filename,{'Lp (µm)'},'Feuil1','D1');
+xlswrite(filename,{'Arclen (µm)'},'Feuil1','E1');
+xlswrite(filename,{'Phi (deg)'},'Feuil1','F1');
+xlswrite(filename,{'Unx (µm)'},'Feuil1','G1');
+xlswrite(filename,{'UNY (µm)'},'Feuil1','H1');
+%xlswrite(filename,{'nz (µm)'},'Feuil1','H1'); %for horizontal Hele-Shaw cells
+xlswrite(filename,{'UNZ (µm)'},'Feuil1','I1');
+xlswrite(filename,{'Andreas Jeff. C'},'Feuil1','J1');
+%xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','J1'); %for horizontal Hele-Shaw cells
+xlswrite(filename,{'Andreas Phi (rad)'},'Feuil1','K1');
+xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','L1');
+xlswrite(filename,{'Expofit coeff a'},'Feuil1','M1');
+xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','N1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','O1');
+xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','P1');
+xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','Q1');
 %
 % ** Writing out data by columns on the Excel sheet 1
 % Using transpose() because data are by default organized in rows instead of columns
-writematrix(transpose(Lpinmicrons),filename,'Sheet',1, 'Range', 'A2');
-writematrix(transpose(arclenMic),filename,'Sheet',1, 'Range', 'B2');
-writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'C2');
-writematrix(transpose(nxinmicrons),filename,'Sheet',1, 'Range', 'D2');
-writematrix(transpose(NYinmicrons),filename,'Sheet',1, 'Range', 'E2');
-writematrix(transpose(NZinmicrons),filename,'Sheet',1, 'Range', 'F2');
-writematrix(transpose(CAndreas),filename,'Sheet',1, 'Range', 'G2');
-%writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'G2'); %for horizontal Hele-Shaw cells
-writematrix(transpose(phiAndreas),filename,'Sheet',1, 'Range', 'H2');
-writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'I2');
-writematrix(fita,filename,'Sheet',1,'Range','J2');
-writematrix(tau,filename,'Sheet',1,'Range','K2');
-writematrix(tJ,filename,'Sheet',1,'Range','L2');
-writematrix(tau_r,filename,'Sheet',1,'Range','M2');
-writematrix(Losingmemory,filename,'Sheet',1,'Range','N2');
+writematrix(transpose([1:length(xy.frame)]),filename,'Sheet',1, 'Range', 'A2');
+writematrix(transpose(xy.frame),filename,'Sheet',1, 'Range', 'B2');
+writematrix(transpose([1:length(xy.frame)]*FSav),filename,'Sheet',1, 'Range', 'C2');
+writematrix(transpose(Lpinmicrons),filename,'Sheet',1, 'Range', 'D2');
+writematrix(transpose(arclenMic),filename,'Sheet',1, 'Range', 'E2');
+writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'F2');
+writematrix(transpose(Unx),filename,'Sheet',1, 'Range', 'G2');
+writematrix(transpose(UNY),filename,'Sheet',1, 'Range', 'H2');
+writematrix(transpose(UNZ),filename,'Sheet',1, 'Range', 'I2');
+writematrix(transpose(CAndreas),filename,'Sheet',1, 'Range', 'J2');
+%writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'J2'); %for horizontal Hele-Shaw cells
+writematrix(transpose(phiAndreas),filename,'Sheet',1, 'Range', 'K2');
+writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'L2');
+writematrix(fita,filename,'Sheet',1,'Range','M2');
+writematrix(tau,filename,'Sheet',1,'Range','N2');
+writematrix(tJ,filename,'Sheet',1,'Range','O2');
+writematrix(tau_r,filename,'Sheet',1,'Range','P2');
+writematrix(Losingmemory,filename,'Sheet',1,'Range','Q2');
 %
 % * FRAMES AND FLAGELLUM (SHEET 2)
 %
