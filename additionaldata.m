@@ -89,10 +89,10 @@ for j = 1 : xy.nframe
     %NYinmicrons(j) = nzinmicrons(j);
     % X and Y coordinates approximated using Lp
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
-    Unx(j) = nx(j)/ Lpmax(j); %unit vector director 
+    Unx(j) = nx(j)/ Lpmax; %unit vector director 
     %nxinmicrons(j) = nx(j)/10.24;
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
-    Uny(j) = ny(j)/Lpmax(j); %unit vector director 
+    Uny(j) = ny(j)/Lpmax; %unit vector director 
     %nyinmicrons(j) = ny(j)/10.24;
     NZ(j) = ny(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
     UNZ(j) = Uny(j); %UNIT VECTOR: Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
@@ -101,6 +101,7 @@ for j = 1 : xy.nframe
     %phi(j) = atan( (xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))/(xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1)) );
     %phi(j) = atan( ny(j)/abs(nx(j)));
     %phiindeg(j) = phi(j) * 180 / pi;
+    phi(j) = atan( ny(j)/nx(j) );
     phiindeg(j) = atan( ny(j)/nx(j) ) * 180 / pi;
     phiAndreas(j) = (atan(NY(j)/abs(nx(j)))) * 180 / pi;
 % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
@@ -111,8 +112,10 @@ for j = 1 : xy.nframe
     %Cm(j) = sign(Chorizontal(j))/(1+abs(Chorizontal(j))); % for horizontal Hele-Shaw cells
 end
 
-% PLOT A FIGURE WITH PHI, CANDREAS, AND CM
-title('Phi(t), C(t), and Cm(t)')
+% PLOT 3 FIGURES WITH (1) PHI AND CANDREAS (2) PHI AND Cm (3) CANDREAS AND CM
+% * Figure 1: Phi(t) and C(t)
+figure()
+title('Phi(t) and C(t)')
 %Plotting on the same figure
 hold on
 xlabel('Time (s)')
@@ -122,13 +125,43 @@ ylabel('Phi (deg)')
 plot(transpose([1:length(xy.frame)]*FSav), phiindeg);
 % Right vertical axis
 yyaxis right
-ylabel('C and Cm');
+ylabel('C');
 plot(transpose([1:length(xy.frame)]*FSav), CAndreas);
-plot(transpose([1:length(xy.frame)]*FSav), Cm);
 %End of plotting on the same figure
+hold off
+% * Figure 2: Phi(t) and Cm(t)
+figure()
+title('Phi(t) and Cm(t)')
+%Plotting on the same figure
+hold on
+xlabel('Time (s)')
+%Left vertical axis
+yyaxis left
+ylabel('Phi (deg)')
+plot(transpose([1:length(xy.frame)]*FSav), phiindeg);
+% Right vertical axis
+yyaxis right
+ylabel('Cm');
+plot(transpose([1:length(xy.frame)]*FSav), Cm);
+hold off
+% * Figure 3: C and Cm
+figure()
+title('C(t) and Cm(t)')
+%Plotting on the same figure
+hold on
+xlabel('Time (s)')
+%Left vertical axis
+yyaxis left
+ylabel('C')
+plot(transpose([1:length(xy.frame)]*FSav), CAndreas);
+% Right vertical axis
+yyaxis right
+ylabel('Cm');
+plot(transpose([1:length(xy.frame)]*FSav), Cm);
 hold off
 
 % PLOT A FIGURE WITH Unx, UNY, UNZ
+figure()
 title('Unx(t), UNY(t), and UNZ(t)')
 %Plotting on the same figure
 hold on
@@ -137,9 +170,9 @@ ylabel('Unx, UNY, UNZ');
 plot(transpose([1:length(xy.frame)]*FSav), Unx);
 plot(transpose([1:length(xy.frame)]*FSav), UNY);
 plot(transpose([1:length(xy.frame)]*FSav), UNZ);
-hold off
 
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
+figure()
 % * Y coordinates stored within a variable
 % * X coordinates are 1,2,3... as numerous as the number of lags since the function is discretized
 Ycorr = real(autocorr(Cm,'Numlags',70)); %real() is the real part of Cm, which are complex numbers
@@ -158,29 +191,29 @@ tau = (-FSav/expofit.b);
 % PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
 % * PDF of Lp
 distributionFitter(Lp)
-figure('Distribution of Lp (µm)', distributionFitter(Lp))
-ylabel('PDF(Lp)')
-xlabel('Lp (µm)')
+% figure('Distribution of Lp (µm)', distributionFitter(Lp))
+% ylabel('PDF(Lp)')
+% xlabel('Lp (µm)')
 % * PDF of Phi
 distributionFitter(phi)
-figure('Distribution of Phi (rad)', distributionFitter(phi))
-ylabel('PDF(phi)')
-xlabel('Phi (rad)')
-xticks([-pi/2 -pi/4 0 pi/4 pi/2])
-xticklabels({'x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2'})
+% figure('Distribution of Phi (rad)', distributionFitter(phi))
+% ylabel('PDF(phi)')
+% xlabel('Phi (rad)')
+% xticks([-pi/2 -pi/4 0 pi/4 pi/2])
+% xticklabels({'x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2'})
 % * PDF of theta
 distributionFitter(theta)
-figure('Distribution of Theta (rad)', distributionFitter(theta))
-ylabel('PDF(theta)')
-xlabel('Theta (rad)')
-xticks([-pi -3pi/4 -pi/2 -pi/4 0 pi/4 pi/2 3pi/4 pi])
-xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
+% figure('Distribution of Theta (rad)', distributionFitter(theta))
+% ylabel('PDF(theta)')
+% xlabel('Theta (rad)')
+% xticks([-\pi -3\pi/4 -\pi/2 -\pi/4 0 \pi/4 \pi/2 3\pi/4 pi])
+% xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
 % * PDF of Cm
 figure('Distribution of Cm', distributionFitter(Cm))
-ylabel('PDF(theta)')
-xlabel('Theta (rad)')
-xticks([-pi -3pi/4 -pi/2 -pi/4 0 pi/4 pi/2 3pi/4 pi])
-xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
+% ylabel('PDF(theta)')
+% xlabel('Theta (rad)')
+% xticks([-pi -3pi/4 -pi/2 -pi/4 0 pi/4 pi/2 3pi/4 pi])
+% xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
 
 % JEFFERY OSCILLATION PERIOD
 % * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
