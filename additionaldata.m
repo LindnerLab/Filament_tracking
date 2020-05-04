@@ -31,20 +31,30 @@ filename = 'additionaldata.xlsx';
 % * fil_length (length of a straight line going from one end of the filament to the other)
 % * lambda = aspect ratio
 % Batch 1: diameter = 0.879; fil_length=8.301;
-% Batch 2: diameter = 1.17; fil_length = 8.35;
+% Batch 2: diameter = 1.17; fil_length = 8.35; mesured on 22971: d=0.912; l=8.076;
 % Batch 3: diameter = 0.69; fil_length = 8.77;
 % Batch 4: diameter = 0.869; fil_length = 10.215;
 % Batch 5: diameter = 0.977; fil_length = 7.887;
 % Batch 6: diameter = 0.834; fil_length = 4.844;
 % Batch 7: diameter = 0.886; fil_length = 7.852;
-diameter = 0.834;
-fil_length = 4.844;
+diameter = 0.912;
+fil_length = 8.076;
 lambda = fil_length/diameter;
+
 % * Average length based on the projected arclen in the xy plane in microns (arclenMic)
+% LENGTH CALCULATIONS
 for j = 1 : xy.nframe
     arclenMic(j) = xy.arclen(j)*100/1024;
+    % Projected length Lp in the xy plane in microns
+    Lp(j) = sqrt((xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1))^2+(xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))^2);
+    Lpinmicrons(j) = Lp(j)/10.24; %10.24 is the conversion factor pixel/degrees for imgs of 1024x1024 of 100x100microns
 end
 Lmean = sum(arclenMic)/xy.nframe;
+% Maximum projected length of the filament ("real" length)
+% Exchange estimated filament length with the maximum projected length
+Lpmax = max(transpose(Lpinmicrons));
+fil_length = Lpmax;
+lambda = fil_length/diameter;
 
 % FRAME INFO
 % * in_frame = First frame (real frame number)
@@ -65,43 +75,69 @@ FSav = (total / xy.nframe)*FS;
 % INCREMENTAL VARIABLES CALCULATION
 for j = 1 : xy.nframe
 % Projected length Lp in the xy plane in microns
-    Lp(j) = sqrt((xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1))^2+(xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))^2);
-    Lpinmicrons(j) = Lp(j)/10.24; %10.24 is the conversion factor pixel/degrees for imgs of 1024x1024 of 100x100microns
+    %Lp(j) = sqrt((xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1))^2+(xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))^2);
+    %Lpinmicrons(j) = Lp(j)/10.24; %10.24 is the conversion factor pixel/degrees for imgs of 1024x1024 of 100x100microns
 % Angle Theta (approximation of the projection in the xz plane), using Gao et al., Phys. Rev. Lett. 2015
-    theta(j) = asin( ((lambda * Lpinmicrons(j)) / (Lmean - 1)) / (lambda - 1)); %Lmean and Lp should be both in microns
+    %theta(j) = asin( ((lambda * Lpinmicrons(j)) / (Lmean - 1)) / (lambda - 1)); %Lmean and Lp should be both in microns
+    theta(j) = asin(Lpinmicrons(j)/Lpmax);
 % Z coordinate approximated by the theta angle according to Gao et al.
-    nz(j) = sin(theta(j));
+    %nz(j) = sin(theta(j));
+    nz(j) = Lpinmicrons(j)/Lpmax;
     %nzinmicrons(j) = nz(j)/10.24;
     NY(j) = nz(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ; NB: NY(j) will always be positive.
-    UNY(j) = nz(j)/(Lmean*10.24);
+    UNY(j) = nz(j)/(Lpmax*10.24);
     %NYinmicrons(j) = nzinmicrons(j);
     % X and Y coordinates approximated using Lp
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
-    Unx(j) = nx(j)/ Lp(j); %unit vector director 
+    Unx(j) = nx(j)/ Lpmax(j); %unit vector director 
     %nxinmicrons(j) = nx(j)/10.24;
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
-    Uny(j) = ny(j)/Lp(j); %unit vector director 
+    Uny(j) = ny(j)/Lpmax(j); %unit vector director 
     %nyinmicrons(j) = ny(j)/10.24;
     NZ(j) = ny(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
     UNZ(j) = Uny(j); %UNIT VECTOR: Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
     %NZinmicrons(j) = nyinmicrons(j);
 % Angle Phi (projection in the xy plane) in degrees
     %phi(j) = atan( (xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2))/(xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1)) );
-    phi(j) = atan( ny(j)/abs(nx(j)));
-    phiindeg(j) = phi(j) * 180 / pi;
+    %phi(j) = atan( ny(j)/abs(nx(j)));
+    %phiindeg(j) = phi(j) * 180 / pi;
+    phiindeg(j) = atan( ny(j)/nx(j) ) * 180 / pi;
     phiAndreas(j) = (atan(NY(j)/abs(nx(j)))) * 180 / pi;
 % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
     %CAndreas(j) = sqrt(nx(j)^2 + (NZ(j)^2/lambda^2))/NY(j);
     CAndreas(j) = sqrt(Unx(j)^2 + (UNZ(j)^2/lambda^2))/UNY(j); %WITH UNIT VECTORS
-    %Chorizontal(j) = sqrt(nx(j)^2 + (nz(j)^2/lambda^2))/ny(j);
+    %Chorizontal(j) = sqrt(Unx(j)^2 + (UNY(j)^2/lambda^2))/Uny(j);
     Cm(j) = sign(CAndreas(j))/(1+abs(CAndreas(j)));
     %Cm(j) = sign(Chorizontal(j))/(1+abs(Chorizontal(j))); % for horizontal Hele-Shaw cells
 end
 
 % PLOT A FIGURE WITH PHI, CANDREAS, AND CM
-%xlabel('time (s)');
-%ylabel
-%imshow(img_tst,[])
+title('Phi(t), C(t), and Cm(t)')
+%Plotting on the same figure
+hold on
+xlabel('Time (s)')
+%Left vertical axis
+yyaxis left
+ylabel('Phi (deg)')
+plot(transpose([1:length(xy.frame)]*FSav), phiindeg);
+% Right vertical axis
+yyaxis right
+ylabel('C and Cm');
+plot(transpose([1:length(xy.frame)]*FSav), CAndreas);
+plot(transpose([1:length(xy.frame)]*FSav), Cm);
+%End of plotting on the same figure
+hold off
+
+% PLOT A FIGURE WITH Unx, UNY, UNZ
+title('Unx(t), UNY(t), and UNZ(t)')
+%Plotting on the same figure
+hold on
+xlabel('Time (s)')
+ylabel('Unx, UNY, UNZ');
+plot(transpose([1:length(xy.frame)]*FSav), Unx);
+plot(transpose([1:length(xy.frame)]*FSav), UNY);
+plot(transpose([1:length(xy.frame)]*FSav), UNZ);
+hold off
 
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
 % * Y coordinates stored within a variable
@@ -119,6 +155,33 @@ plot(expofit,T_Xcorr,T_Ycorr);
 fita = expofit.a;
 tau = (-FSav/expofit.b);
 
+% PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
+% * PDF of Lp
+distributionFitter(Lp)
+figure('Distribution of Lp (µm)', distributionFitter(Lp))
+ylabel('PDF(Lp)')
+xlabel('Lp (µm)')
+% * PDF of Phi
+distributionFitter(phi)
+figure('Distribution of Phi (rad)', distributionFitter(phi))
+ylabel('PDF(phi)')
+xlabel('Phi (rad)')
+xticks([-pi/2 -pi/4 0 pi/4 pi/2])
+xticklabels({'x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2'})
+% * PDF of theta
+distributionFitter(theta)
+figure('Distribution of Theta (rad)', distributionFitter(theta))
+ylabel('PDF(theta)')
+xlabel('Theta (rad)')
+xticks([-pi -3pi/4 -pi/2 -pi/4 0 pi/4 pi/2 3pi/4 pi])
+xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
+% * PDF of Cm
+figure('Distribution of Cm', distributionFitter(Cm))
+ylabel('PDF(theta)')
+xlabel('Theta (rad)')
+xticks([-pi -3pi/4 -pi/2 -pi/4 0 pi/4 pi/2 3pi/4 pi])
+xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
+
 % JEFFERY OSCILLATION PERIOD
 % * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
 % * tJ is the Jeffery oscillation period (in s) according to Zöttl et al., 2019
@@ -131,7 +194,7 @@ tau = (-FSav/expofit.b);
 % Batch 6: gammadot = 12.43 using shear_Y[250,27]
 % Batch 7: inconnu 
 % !!!! in some cases, gammadot changes with time as the filament deviates from a straight line trajectory
-gammadot = 12.43;
+gammadot = 16.8;
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
 Losingmemory = tau/tJ;
 
@@ -168,10 +231,12 @@ xlswrite(filename,{'Time (s)'},'Feuil1','C1');
 xlswrite(filename,{'Lp (µm)'},'Feuil1','D1');
 xlswrite(filename,{'Arclen (µm)'},'Feuil1','E1');
 xlswrite(filename,{'Phi (deg)'},'Feuil1','F1');
-xlswrite(filename,{'Unx (µm)'},'Feuil1','G1');
+xlswrite(filename,{'Unx'},'Feuil1','G1');
 xlswrite(filename,{'UNY (µm)'},'Feuil1','H1');
+%xlswrite(filename,{'Uny'},'Feuil1','H1');
 %xlswrite(filename,{'nz (µm)'},'Feuil1','H1'); %for horizontal Hele-Shaw cells
 xlswrite(filename,{'UNZ (µm)'},'Feuil1','I1');
+xlswrite(filename,{'UNY'},'Feuil1','I1');
 xlswrite(filename,{'Andreas Jeff. C'},'Feuil1','J1');
 %xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','J1'); %for horizontal Hele-Shaw cells
 xlswrite(filename,{'Andreas Phi (rad)'},'Feuil1','K1');
@@ -192,7 +257,9 @@ writematrix(transpose(arclenMic),filename,'Sheet',1, 'Range', 'E2');
 writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'F2');
 writematrix(transpose(Unx),filename,'Sheet',1, 'Range', 'G2');
 writematrix(transpose(UNY),filename,'Sheet',1, 'Range', 'H2');
+%writematrix(transpose(Uny),filename,'Sheet',1, 'Range', 'H2');
 writematrix(transpose(UNZ),filename,'Sheet',1, 'Range', 'I2');
+%writematrix(transpose(UNY),filename,'Sheet',1, 'Range', 'I2');
 writematrix(transpose(CAndreas),filename,'Sheet',1, 'Range', 'J2');
 %writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'J2'); %for horizontal Hele-Shaw cells
 writematrix(transpose(phiAndreas),filename,'Sheet',1, 'Range', 'K2');
