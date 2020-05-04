@@ -115,7 +115,7 @@ end
 
 close all
 
-% PLOT 3 FIGURES WITH (1) PHI AND CANDREAS (2) PHI AND Cm (3) CANDREAS AND CM
+% PLOT 4 FIGURES WITH (1) PHI AND CANDREAS (2) PHI AND Cm (3) CANDREAS AND CM (4) PHI AND LPINMICRONS
 % * Figure 1: Phi(t) and C(t)
 figure()
 title('Phi(t) and C(t)')
@@ -165,6 +165,22 @@ ylabel('Cm');
 plot(transpose([1:length(xy.frame)]*FSav), Cm);
 hold off
 saveas(gcf,'Fig3_C-and-Cm','pdf');
+% * Figure 4: Phi and Lpinmicrons
+figure()
+title('Phi(t) and Lp(t)')
+%Plotting on the same figure
+hold on
+xlabel('Time (s)')
+%Left vertical axis
+yyaxis left
+ylabel('Phi')
+plot(transpose([1:length(xy.frame)]*FSav), phiindeg);
+% Right vertical axis
+yyaxis right
+ylabel('Lp (µm)');
+plot(transpose([1:length(xy.frame)]*FSav), Lpinmicrons);
+hold off
+saveas(gcf,'Fig4_Phi-and-Lpinmicrons','pdf');
 
 % PLOT A FIGURE WITH Unx, UNY, UNZ
 figure()
@@ -176,7 +192,7 @@ ylabel('Unx, UNY, UNZ');
 plot(transpose([1:length(xy.frame)]*FSav), Unx);
 plot(transpose([1:length(xy.frame)]*FSav), UNY);
 plot(transpose([1:length(xy.frame)]*FSav), UNZ);
-saveas(gcf,'Fig4_Unx-UNY-UNZ','pdf');
+saveas(gcf,'Fig5_Unx-UNY-UNZ','pdf');
 
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
 figure()
@@ -194,21 +210,21 @@ plot(expofit,T_Xcorr,T_Ycorr);
 % Harvesting expofit coefficients
 fita = expofit.a;
 tau = (-FSav/expofit.b);
-saveas(gcf,'Fig5_autocorr-Cm','pdf');
+saveas(gcf,'Fig6_autocorr-Cm','pdf');
 
 % PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
 figure()
-PDF_Lp(Lp)
-saveas(gcf,'Fig6_PDF-Lp','pdf');
+PDF_Lp(Lpinmicrons)
+saveas(gcf,'Fig7_PDF-Lp','pdf');
 figure()
 PDF_phi(phi)
-saveas(gcf,'Fig7_PDF-Phi','pdf');
+saveas(gcf,'Fig8_PDF-Phi','pdf');
 figure()
 PDF_theta(theta)
-saveas(gcf,'Fig8_PDF-Theta','pdf');
+saveas(gcf,'Fig9_PDF-Theta','pdf');
 figure()
 PDF_Cm(Cm)
-saveas(gcf,'Fig9_PDF-Cm','pdf');
+saveas(gcf,'Fig10_PDF-Cm','pdf');
 %D'après Martyna:
 %figure;
 %histogram(phi,nbdebarres,'Normalization','pdf')
