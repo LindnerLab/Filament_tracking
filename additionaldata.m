@@ -85,14 +85,15 @@ for j = 1 : xy.nframe
     nz(j) = Lpinmicrons(j)/Lpmax;
     %nzinmicrons(j) = nz(j)/10.24;
     NY(j) = nz(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ; NB: NY(j) will always be positive.
-    UNY(j) = nz(j)/(Lpmax*10.24);
+    %UNY(j) = nz(j)/(Lpmax*10.24);
+    UNY(j) = nz(j);
     %NYinmicrons(j) = nzinmicrons(j);
     % X and Y coordinates approximated using Lp
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
-    Unx(j) = nx(j)/ Lpmax; %unit vector director 
+    Unx(j) = nx(j)/ (Lpmax*10.24); %unit vector director 
     %nxinmicrons(j) = nx(j)/10.24;
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
-    Uny(j) = ny(j)/Lpmax; %unit vector director 
+    Uny(j) = ny(j)/ (Lpmax*10.24); %unit vector director 
     %nyinmicrons(j) = ny(j)/10.24;
     NZ(j) = ny(j); %Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
     UNZ(j) = Uny(j); %UNIT VECTOR: Hele-Shaw horizontal for Andreas: converting nz -> NY and ny -> NZ
@@ -131,6 +132,7 @@ ylabel('C');
 plot(transpose([1:length(xy.frame)]*FSav), CAndreas);
 %End of plotting on the same figure
 hold off
+saveas(gcf,'Fig1_Phi-and-C','pdf');
 % * Figure 2: Phi(t) and Cm(t)
 figure()
 title('Phi(t) and Cm(t)')
@@ -146,6 +148,7 @@ yyaxis right
 ylabel('Cm');
 plot(transpose([1:length(xy.frame)]*FSav), Cm);
 hold off
+saveas(gcf,'Fig2_Phi-and-Cm','pdf');
 % * Figure 3: C and Cm
 figure()
 title('C(t) and Cm(t)')
@@ -161,6 +164,7 @@ yyaxis right
 ylabel('Cm');
 plot(transpose([1:length(xy.frame)]*FSav), Cm);
 hold off
+saveas(gcf,'Fig3_C-and-Cm','pdf');
 
 % PLOT A FIGURE WITH Unx, UNY, UNZ
 figure()
@@ -172,6 +176,7 @@ ylabel('Unx, UNY, UNZ');
 plot(transpose([1:length(xy.frame)]*FSav), Unx);
 plot(transpose([1:length(xy.frame)]*FSav), UNY);
 plot(transpose([1:length(xy.frame)]*FSav), UNZ);
+saveas(gcf,'Fig4_Unx-UNY-UNZ','pdf');
 
 % AUTOCORRELATION FUNCTION autocorr(function,'Numlags',number of lags)
 figure()
@@ -189,16 +194,24 @@ plot(expofit,T_Xcorr,T_Ycorr);
 % Harvesting expofit coefficients
 fita = expofit.a;
 tau = (-FSav/expofit.b);
+saveas(gcf,'Fig5_autocorr-Cm','pdf');
 
 % PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
 figure()
 PDF_Lp(Lp)
+saveas(gcf,'Fig6_PDF-Lp','pdf');
 figure()
 PDF_phi(phi)
+saveas(gcf,'Fig7_PDF-Phi','pdf');
 figure()
 PDF_theta(theta)
+saveas(gcf,'Fig8_PDF-Theta','pdf');
 figure()
 PDF_Cm(Cm)
+saveas(gcf,'Fig9_PDF-Cm','pdf');
+%D'après Martyna:
+%figure;
+%histogram(phi,nbdebarres,'Normalization','pdf')
 
 % JEFFERY OSCILLATION PERIOD
 % * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
