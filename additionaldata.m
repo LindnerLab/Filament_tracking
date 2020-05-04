@@ -112,6 +112,8 @@ for j = 1 : xy.nframe
     %Cm(j) = sign(Chorizontal(j))/(1+abs(Chorizontal(j))); % for horizontal Hele-Shaw cells
 end
 
+close all
+
 % PLOT 3 FIGURES WITH (1) PHI AND CANDREAS (2) PHI AND Cm (3) CANDREAS AND CM
 % * Figure 1: Phi(t) and C(t)
 figure()
@@ -189,31 +191,14 @@ fita = expofit.a;
 tau = (-FSav/expofit.b);
 
 % PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
-% * PDF of Lp
-distributionFitter(Lp)
-% figure('Distribution of Lp (µm)', distributionFitter(Lp))
-% ylabel('PDF(Lp)')
-% xlabel('Lp (µm)')
-% * PDF of Phi
-distributionFitter(phi)
-% figure('Distribution of Phi (rad)', distributionFitter(phi))
-% ylabel('PDF(phi)')
-% xlabel('Phi (rad)')
-% xticks([-pi/2 -pi/4 0 pi/4 pi/2])
-% xticklabels({'x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2'})
-% * PDF of theta
-distributionFitter(theta)
-% figure('Distribution of Theta (rad)', distributionFitter(theta))
-% ylabel('PDF(theta)')
-% xlabel('Theta (rad)')
-% xticks([-\pi -3\pi/4 -\pi/2 -\pi/4 0 \pi/4 \pi/2 3\pi/4 pi])
-% xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
-% * PDF of Cm
-figure('Distribution of Cm', distributionFitter(Cm))
-% ylabel('PDF(theta)')
-% xlabel('Theta (rad)')
-% xticks([-pi -3pi/4 -pi/2 -pi/4 0 pi/4 pi/2 3pi/4 pi])
-% xticklabels({'x = -\pi','x = -3\pi/4','x = -\pi/2','x = -\pi/4','x = 0','x = \pi/4','x = \pi/2','x = 3\pi/4','x = \pi'})
+figure()
+PDF_Lp(Lp)
+figure()
+PDF_phi(phi)
+figure()
+PDF_theta(theta)
+figure()
+PDF_Cm(Cm)
 
 % JEFFERY OSCILLATION PERIOD
 % * gammadot is the shear rate (in s-1); 18 s-1 is the value given by Zöttl et al (default value here)
