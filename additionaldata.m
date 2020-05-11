@@ -104,7 +104,7 @@ Lmean = sum(Lp)/xy.nframe;
 LpmaxMIC = max(transpose(LpMIC));
 LmeanMIC = sum(LpMIC)/xy.nframe;
 
-% New calculation of filament length and aspect ratio based on Lp
+% New calculation (1) of filament length and aspect ratio based on Lp
 fil_length = LpmaxMIC;
 lambda = fil_length/diameter;
 
@@ -123,11 +123,52 @@ for j = 1 : xy.nframe
     
 end
 
-% UNIT COORDINATES AND ANDREAS COORDINATES (UNY, UNZ)
+% ESTIMATE THE REAL FILAMENT LENGTH L AND DIAMETER D
 for j = 1 : xy.nframe
-    Unx(j) = nx(j)/Lpmax;
-    Uny(j) = ny(j)/Lpmax;
-    Unz(j) = nz(j)/Lpmax;
+    if nxMIC < 0.1 && nyMIC < 0.1
+        Lp01(j) = sqrt(nxMIC(j)^2+nyMIC(j)^2);
+        Dp01(j) = max(nyMIC(j)) - min(nyMIC(j));
+    elseif nxMIC < 0.2 && nyMIC < 0.2
+        Lp02(j) = sqrt(nxMIC(j)^2+nyMIC(j)^2);
+        Dp02(j) = max(nyMIC(j)) - min(nyMIC(j));
+    elseif nxMIC < 0.3 && nyMIC < 0.3
+        Lp03(j) = sqrt(nxMIC(j)^2+nyMIC(j)^2);
+        Dp03(j) = max(nyMIC(j)) - min(nyMIC(j));
+    end
+end
+L01 = sum(Lp01)/length(transpose(Lp01));
+L02 = sum(Lp02)/length(transpose(Lp02));
+L03 = sum(Lp03)/length(transpose(Lp03));
+D01 = sum(Dp01)/length(transpose(Dp01));
+D02 = sum(Dp02)/length(transpose(Dp02));
+D03 = sum(Dp03)/length(transpose(Dp03));
+% ** FIXING THRESHOLD (for info)
+Threshold = 0.1;
+% ** NEW CALCULATION (2) of filament length and aspect ratio based on threshold
+fil_length = L01;
+diameter = D01;
+lambda = fil_length/diameter;
+
+% NEW CALCULATION BASED ON THRESHOLD
+% ON THE XZ PLANE (OUT-OF-PLANE)
+% COORDINATE AND PROJECTED LENGTH (px and microns)
+for j = 1 : xy.nframe
+        % PROJECTED LENGTH
+    Lpz(j) = cos(phi(j)) * fil_length;
+    LpzMIC(j) = cos(phi(j)) * fil_length;
+        % ANGLE
+    theta(j) = acos(LpMIC(j)/fil_length);
+    thetaindeg(j) = theta(j) * 180 / pi;
+        % COORDINATE
+    nz(j) = sin(theta(j)) * Lpz(j);
+    nzMIC(j) = sin(theta(j)) * LpzMIC(j);
+end
+
+% NEW UNIT COORDINATES AND ANDREAS COORDINATES (UNY, UNZ)
+for j = 1 : xy.nframe
+    Unx(j) = nxMIC(j)/fil_length;
+    Uny(j) = nyMIC(j)/fil_length;
+    Unz(j) = nzMIC(j)/fil_length;
         % Andreas' coordinates
     UNY(j) = Unz(j);
     UNZ(j) = Uny(j);
