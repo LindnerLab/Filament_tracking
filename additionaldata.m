@@ -28,19 +28,27 @@
 %
 % * IN THE XY PLANE (observation plane):
 %
-% ** nx and ny (nxMIC and nyMIC) : delta x and delta y on the endpoints of the detected filament
+% ** nx and ny (nxMIC and nyMIC) : delta x and delta y on the endpoints of the detected filament;
 % ** Lp (LpMIC): projected lengths (in pixels and in microns) based on coordinates
 % ** arclen (arclenMIC): projected arc length (in pixels and in microns)
-% ** Phi (phiindeg): projected angle = atan(delta y / delta x) in radians and degrees
-% ** REAL LENGTH is estimated via LmeanMIC (mean of LpMIC) and LpmaxMIC
-% (maximal value taken by LpMIC); this length replaces fil_length when calculated
+% ** Xsi (xsiindeg): projected angle = atan(delta y / delta x) in radians and degrees
+% ** REAL LENGTH is estimated via LmeanMIC (mean of LpMIC) and Lav5MIC;
+%    Lav5MIC corresponds to the average of the 5% maximal values taken by Lp over the
+%    course of all frames treated. 5%maximal values are calculated with
+%    the maxk(A,k) function taken the k maximal values of the array A.
+%    round() approximates to the nearest integer.
+%    --> The length Lav5MIC replaces fil_length when calculated, if
+%    superior to the initial fil_length calculated by hand.
+%
+% * OUT-OF-PLANE (IN 3D)
+% 
+% ** theta (thetaindeg): angle between the filament and the y axis
 %
 % * IN THE XZ PLANE (out-of-plane):
 %
-% ** Lpz (LpzMIC) = projected lengths (in pixels and in microns) such as Lpz = cos(phi)*Lpmax
+% ** Lpz (LpzMIC) = projected lengths (in pixels and in microns) such as Lpz = cos(phi)*Lav5MIC
 % ** nz (nzMIC) such as nzMIC = sin(theta) * LpzMIC
-% ** Theta (thetaindeg): angle between xy plane and a plane perpendicular to it that includes the filament: acos(Lp/Lpmax)
-%
+% ** phi (phiindeg): angle between Lpz and the x axis
 %
 % * INDICATORS TO COMPARE JEFFERY VS. BROWNIAN MOTION
 % ** Jeffery constant C (depends on nx, ny, nz, and the filament aspect ratio)
@@ -87,7 +95,7 @@ fil_length = 8.076;
 lambda = fil_length/diameter;
 
 % ON THE XY PLANE
-% COORDINATES & LENGTHS (px and microns) AND ANGLES
+% COORDINATES & LENGTHS (px and microns) AND ANGLE
 for j = 1 : xy.nframe
     nx(j) = xy.spl{j}(length(xy.spl{j}),1)-xy.spl{j}(1,1);
     ny(j) = xy.spl{j}(length(xy.spl{j}),2)-xy.spl{j}(1,2);
@@ -96,72 +104,46 @@ for j = 1 : xy.nframe
     nyMIC(j) = ny(j) * 100 / 1024;
     LpMIC(j) = Lp(j) * 100 / 1024;
     arclenMic(j) = xy.arclen(j)*100/1024;
-    phi(j) = atan(ny(j)/nx(j));
-    phiindeg(j) = phi(j) * 180 / pi;
+    xsi(j) = ny(j)/nx(j);
+    xsiindeg(j) = xsi(j) * 180 / pi;
 end
-Lpmax = max(transpose(Lp));
+% REAL LENGTH
+fivepercent = round((5/100) * xy.nframe);
+L5 = maxk(transpose(Lp),fivepercent);
+Lav5 = sum(L5)/fivepercent;
+Lav5MIC = Lav5 * 100 / 1024;
+%
 Lmean = sum(Lp)/xy.nframe;
-LpmaxMIC = max(transpose(LpMIC));
 LmeanMIC = sum(LpMIC)/xy.nframe;
 
-% New calculation (1) of filament length and aspect ratio based on Lp
-fil_length = LpmaxMIC;
-lambda = fil_length/diameter;
+% NEW CALCULATION OF FILAMENT LENGTH AND ASPECT RATIO BASED ON THE 5% MAXIMAL VALUES OF Lp
+if Lav5MIC > fil_length
+    fil_length = Lav5MIC;
+    lambda = fil_length/diameter;
+else
+    fil_length = fil_length;
+    lambda = fil_length/diameter;
+end
 
-% ON THE XZ PLANE (OUT-OF-PLANE)
+% OUT-OF-PLANE (IN 3D)
+for j = 1 : xy.nframe
+    theta(j) = acos(nyMIC(j)/fil_length);
+    thetaindeg(j) = theta(j) * 180 / pi;
+end
+
+% ON THE XZ PLANE
 % COORDINATE AND PROJECTED LENGTH (px and microns)
 for j = 1 : xy.nframe
         % PROJECTED LENGTH
-    Lpz(j) = cos(phi(j)) * Lpmax;
-    LpzMIC(j) = cos(phi(j)) * LpmaxMIC;
+    Lpz(j) = (fil_length/100*1024) * sin(theta(j));
+    LpzMIC(j) = fil_length * sin(theta(j));
         % ANGLE
-    theta(j) = acos(LpMIC(j)/LpmaxMIC));
-    thetaindeg(j) = theta(j) * 180 / pi;
+    phi(j) = acos(nx(j)/Lpz(j));
+    phi(j) = real(phi(j)); % removing imaginary phi in case Lp > fil_length (under- or over-estimate of length)
+    phiindeg(j) = phi(j) * 180 / pi;
         % COORDINATE
-    nz(j) = sin(theta(j)) * Lpz(j);
-    nzMIC(j) = sin(theta(j)) * LpzMIC(j);
-    
-end
-
-% ESTIMATE THE REAL FILAMENT LENGTH L AND DIAMETER D
-for j = 1 : xy.nframe
-    if nxMIC < 0.1 && nyMIC < 0.1
-        Lp01(j) = sqrt(nxMIC(j)^2+nyMIC(j)^2);
-        Dp01(j) = max(nyMIC(j)) - min(nyMIC(j));
-    elseif nxMIC < 0.2 && nyMIC < 0.2
-        Lp02(j) = sqrt(nxMIC(j)^2+nyMIC(j)^2);
-        Dp02(j) = max(nyMIC(j)) - min(nyMIC(j));
-    elseif nxMIC < 0.3 && nyMIC < 0.3
-        Lp03(j) = sqrt(nxMIC(j)^2+nyMIC(j)^2);
-        Dp03(j) = max(nyMIC(j)) - min(nyMIC(j));
-    end
-end
-L01 = sum(Lp01)/length(transpose(Lp01));
-L02 = sum(Lp02)/length(transpose(Lp02));
-L03 = sum(Lp03)/length(transpose(Lp03));
-D01 = sum(Dp01)/length(transpose(Dp01));
-D02 = sum(Dp02)/length(transpose(Dp02));
-D03 = sum(Dp03)/length(transpose(Dp03));
-% ** FIXING THRESHOLD (for info)
-Threshold = 0.1;
-% ** NEW CALCULATION (2) of filament length and aspect ratio based on threshold
-fil_length = L01;
-diameter = D01;
-lambda = fil_length/diameter;
-
-% NEW CALCULATION BASED ON THRESHOLD
-% ON THE XZ PLANE (OUT-OF-PLANE)
-% COORDINATE AND PROJECTED LENGTH (px and microns)
-for j = 1 : xy.nframe
-        % PROJECTED LENGTH
-    Lpz(j) = cos(phi(j)) * fil_length;
-    LpzMIC(j) = cos(phi(j)) * fil_length;
-        % ANGLE
-    theta(j) = acos(LpMIC(j)/fil_length);
-    thetaindeg(j) = theta(j) * 180 / pi;
-        % COORDINATE
-    nz(j) = sin(theta(j)) * Lpz(j);
-    nzMIC(j) = sin(theta(j)) * LpzMIC(j);
+    nz(j) = sin(phi(j)) * Lpz(j);
+    nzMIC(j) = sin(phi(j)) * LpzMIC(j);
 end
 
 % NEW UNIT COORDINATES AND ANDREAS COORDINATES (UNY, UNZ)
@@ -178,15 +160,16 @@ end
 for j = 1 : xy.nframe
     CAndreas(j) = sqrt(Unx(j)^2 + (UNZ(j)^2/lambda^2))/UNY(j);
     Cm(j) = sign(CAndreas(j))/(1+abs(CAndreas(j)));
-    Cprime(j) = C(j)/(1+C(j));
+    Cprime(j) = CAndreas(j)/(1+CAndreas(j));
         % IF HORIZONTAL HELE-SHAW CELL
     %Chorizontal(j) = sqrt(Unx(j)^2 + (UNY(j)^2/lambda^2))/Uny(j);
     %Cm(j) = sign(Chorizontal(j))/(1+abs(Chorizontal(j)));
 end
 
 % AUTOCORRELATION OF Cm AND Tau
-Ycorr = real(autocorr(Cm,'Numlags',70));
-Xcorr = (1:71)/30;
+NbofLags = 70;
+Ycorr = autocorr(Cm,'Numlags',NbofLags);
+Xcorr = (0:70)*FSav;
 T_Ycorr = transpose(Ycorr);
 T_Xcorr = transpose(Xcorr);
 expofit = fit(T_Xcorr,T_Ycorr,'exp1');
@@ -287,7 +270,7 @@ ylabel('Phi')
 plot(Time, phiindeg);
 yyaxis right
 ylabel('Lp (µm)');
-plot(Time, Lpinmicrons);
+plot(Time, LpMIC);
 hold off
 saveas(gcf,'Fig3_Phi-and-LpMIC','pdf');
 %
@@ -320,6 +303,7 @@ plot(Time, Unx);
 plot(Time, Uny);
 plot(Time, Unz);
 hold off
+legend('Lp','Unx','Uny','Unz')
 saveas(gcf,'Fig5_LpMIC-Unx-Uny-Unz','pdf');
 
 % PLOTTING THE AUTOCORRELATION FUNCTION
@@ -329,7 +313,7 @@ saveas(gcf,'Fig6_autocorr-Cm','pdf');
 
 % PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
 figure()
-PDF_Lp(Lpinmicrons)
+PDF_Lp(LpMIC)
 saveas(gcf,'Fig7_PDF-Lp','pdf');
 figure()
 PDF_phi(phi)
@@ -338,8 +322,11 @@ figure()
 PDF_theta(theta)
 saveas(gcf,'Fig9_PDF-Theta','pdf');
 figure()
+PDF_xsi(xsi)
+saveas(gcf,'Fig10_PDF-Xsi','pdf');
+figure()
 PDF_Cm(Cm)
-saveas(gcf,'Fig10_PDF-Cm','pdf');
+saveas(gcf,'Fig11_PDF-Cm','pdf');
 %D'après Martyna:
 %figure;
 %histogram(phi,nbdebarres,'Normalization','pdf')
@@ -411,7 +398,7 @@ xlswrite(filename,{'Diameter (µm)'},'Feuil2','A12');
 xlswrite(filename,{'Length (µm)'},'Feuil2','A13');
 xlswrite(filename,{'Aspect ratio lambda'},'Feuil2','A14');
 xlswrite(filename,{'Average length Lmean (µm)'},'Feuil2','A15');
-xlswrite(filename,{'Maximal length Lpmax (µm)'},'Feuil2','A16');
+xlswrite(filename,{'Average maximal length Lav5 over 5% of Lp (µm)'},'Feuil2','A16');
 %
 % Writing out data by rows on the Excel sheet 2
 writematrix(F,filename,'Sheet',2,'Range','B2');
@@ -428,7 +415,7 @@ writematrix(diameter,filename,'Sheet',2,'Range','B12');
 writematrix(fil_length,filename,'Sheet',2,'Range','B13');
 writematrix(lambda,filename,'Sheet',2,'Range','B14');
 writematrix(LmeanMIC,filename,'Sheet',2,'Range','B15');
-writematrix(LpmaxMIC,filename,'Sheet',2,'Range','B16');
+writematrix(Lav5MIC,filename,'Sheet',2,'Range','B16');
 %
 % * CODE PARAMETERS (SHEET 3)
 %
