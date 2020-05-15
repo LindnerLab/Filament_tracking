@@ -199,6 +199,7 @@ for j = 1 : xy.nframe
     end
 end
 if Limitcorrframe == 0
+    Limitcorrtime = 0;
     input_plotautocorr = input('Decorrelation did not occur. Do you still want to plot the autocorr function? Press: \n 1 = yes \n 2 = no \n');
     if input_plotautocorr == 1
         input_NbofLags = input('Choose your decorrelation frame : \n');
@@ -210,7 +211,9 @@ if Limitcorrframe == 0
         fita = expofit.a;
         tau = (-FSav/expofit.b);
     else
-        disp('No autocorr function plotted.')
+        input_NbofLags = 0;
+        disp('No autocorr function plotted. Tau is not valid.')
+        tau = 0;
     end
 else
     Limitcorrtime = Limitcorrframe * FSav; %equivalent to tau (without smoothing)
@@ -359,13 +362,18 @@ saveas(gcf,'Fig5_LpMIC-Unx-Uny-Unz','pdf');
 saveas(gcf,'Fig5_LpMIC-Unx-Uny-Unz','fig');
 
 % PLOTTING THE AUTOCORRELATION FUNCTION
-if Limitcorrframe == 0
+if input_NbofLags == 0
     disp('Decorrelation did not occur.')
 else
-figure()
-plot(expofit,T_Xcorr,T_Ycorr);
-saveas(gcf,'Fig6_autocorr-Cm','pdf');
-saveas(gcf,'Fig6_autocorr-Cm','fig');
+    figure()
+    hold on
+    if ne(Limitcorrtime,0) == 1 %If Limitcorrtime is not equal to 0
+        xline(Limitcorrtime,'r:','Decorrelation time');
+    end
+    plot(expofit,T_Xcorr,T_Ycorr);
+    hold off
+    saveas(gcf,'Fig6_autocorr-Cm','pdf');
+    saveas(gcf,'Fig6_autocorr-Cm','fig');
 end
 
 % PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
@@ -412,10 +420,11 @@ xlswrite(filename,{'Phi (deg)'},'Feuil1','I1');
 xlswrite(filename,{'Theta (deg)'},'Feuil1','J1');
 xlswrite(filename,{'Andreas Jeff. C'},'Feuil1','K1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','L1');
-xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','M1');
-xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','N1');
-xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','O1');
-xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','P1');
+xlswrite(filename,{'Limit decorrelation time (s)'},'Feuil1','M1');
+xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','N1');
+xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','O1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','P1');
+xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','Q1');
 % FOR HORIZONTAL HELE-SHAW CELLS
 %xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','K1');
 %
@@ -434,10 +443,11 @@ writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'I2');
 writematrix(transpose(thetaindeg),filename,'Sheet',1, 'Range', 'J2');
 writematrix(transpose(CAndreas),filename,'Sheet',1, 'Range', 'K2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'L2');
-writematrix(tau,filename,'Sheet',1,'Range','M2');
-writematrix(tau_r,filename,'Sheet',1,'Range','N2');
-writematrix(tJ,filename,'Sheet',1,'Range','O2');
-writematrix(Losingmemory,filename,'Sheet',1,'Range','P2');
+writematrix(Limitcorrtime,filename,'Sheet',1,'Range','M2');
+writematrix(tau,filename,'Sheet',1,'Range','N2');
+writematrix(tau_r,filename,'Sheet',1,'Range','O2');
+writematrix(tJ,filename,'Sheet',1,'Range','P2');
+writematrix(Losingmemory,filename,'Sheet',1,'Range','Q2');
 % FOR HORIZONTAL HELE-SHAW CELLS
 %writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'J2'); %for horizontal Hele-Shaw cells
 %
