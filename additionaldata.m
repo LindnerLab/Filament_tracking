@@ -105,7 +105,7 @@ for j = 1 : xy.nframe
     nyMIC(j) = ny(j) * 100 / 1024;
     LpMIC(j) = Lp(j) * 100 / 1024;
     arclenMic(j) = xy.arclen(j)*100/1024;
-    xsi(j) = ny(j)/nx(j);
+    xsi(j) = atan(ny(j)/nx(j));
     xsiindeg(j) = xsi(j) * 180 / pi;
 end
 % REAL LENGTH
@@ -206,12 +206,13 @@ if Limitcorrframe == 0
     Limitcorrtime = 0;
     input_plotautocorr = input('Decorrelation did not occur. Do you still want to plot the autocorr function? Press: \n 1 = yes \n 2 = no \n');
     if input_plotautocorr == 1
-        input_NbofLags = input('Choose your decorrelation frame : \n');
-        Ycorr = autocorr(Cm,'Numlags',input_NbofLags);
-        Xcorr = (1:input_NbofLags+1)*FSav;
+        input_NbofLags = input('Choose your decorrelation frame+1 : \n');
+        Ycorr = autocorr(Cm,'Numlags',input_NbofLags-1);
+        Xcorr = (1:input_NbofLags)*FSav;
         T_Ycorr = transpose(Ycorr);
         T_Xcorr = transpose(Xcorr);
-        expofit = fit(T_Xcorr,T_Ycorr,'exp1','StartPoint',[T_Xcorr(100),T_Ycorr(100)]); %Limitcorrtime with smoothing of the curve
+        Fitstart = 70;
+        expofit = fit(T_Xcorr,T_Ycorr,'exp1','StartPoint',[T_Xcorr(Fitstart),T_Ycorr(Fitstart)]); %Limitcorrtime with smoothing of the curve
         fita = expofit.a;
         tau = (-FSav/expofit.b);
     else
@@ -221,9 +222,9 @@ if Limitcorrframe == 0
     end
 else
     Limitcorrtime = Limitcorrframe * FSav; %equivalent to tau (without smoothing)
-    input_NbofLags = input(strcat('The decorrelation frame is ', num2str(Limitcorrframe),' over ', num2str(xy.nframe),' frames. Choose your decorrelation frame : \n'));
-    Ycorr = autocorr(Cm,'Numlags',input_NbofLags);
-    Xcorr = (1:input_NbofLags+1)*FSav;
+    input_NbofLags = input(strcat('The decorrelation frame is ', num2str(Limitcorrframe),' over ', num2str(xy.nframe),' frames. Choose your decorrelation frame+1 : \n'));
+    Ycorr = autocorr(Cm,'Numlags',input_NbofLags-1);
+    Xcorr = (1:input_NbofLags)*FSav;
     T_Ycorr = transpose(Ycorr);
     T_Xcorr = transpose(Xcorr);
     expofit = fit(T_Xcorr,T_Ycorr,'exp1','StartPoint',[T_Xcorr(100),T_Ycorr(100)]); %Limitcorrtime with smoothing of the curve
@@ -375,6 +376,10 @@ else
         xline(Limitcorrtime,'r:','Decorrelation time');
     end
     plot(expofit,T_Xcorr,T_Ycorr);
+    xline(Fitstart*FSav,'g','Starting point of data included in fit');
+    title('Autocorrelation of Cm')
+    xlabel('Time (s)')
+    ylabel('<Cm(t)Cm(t+lag)>')
     hold off
     saveas(gcf,'Fig6_autocorr-Cm','pdf');
     saveas(gcf,'Fig6_autocorr-Cm','fig');
