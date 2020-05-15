@@ -433,8 +433,10 @@ xlswrite(filename,{'Maximal duration when autocorr=0 (s)'},'Feuil1','M1');
 xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','N1');
 xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','O1');
 xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','P1');
-xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','Q1');
-xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','R1');
+xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','Q1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','R1');
+xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','S1');
+
 % FOR HORIZONTAL HELE-SHAW CELLS
 %xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','K1');
 %
@@ -455,9 +457,10 @@ writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'L2');
 writematrix(Maximaldurationwhenautocorrisnul,filename,'Sheet',1, 'Range', 'M2');
 writematrix(Limitcorrtime,filename,'Sheet',1,'Range','N2');
 writematrix(tau,filename,'Sheet',1,'Range','O2');
-writematrix(tau_r,filename,'Sheet',1,'Range','P2');
-writematrix(tJ,filename,'Sheet',1,'Range','Q2');
-writematrix(Losingmemory,filename,'Sheet',1,'Range','R2');
+writematrix(gammadot,filename,'Sheet',1,'Range','P2');
+writematrix(tau_r,filename,'Sheet',1,'Range','Q2');
+writematrix(tJ,filename,'Sheet',1,'Range','R2');
+writematrix(Losingmemory,filename,'Sheet',1,'Range','S2');
 % FOR HORIZONTAL HELE-SHAW CELLS
 %writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'J2'); %for horizontal Hele-Shaw cells
 %
