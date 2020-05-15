@@ -167,15 +167,62 @@ for j = 1 : xy.nframe
 end
 
 % AUTOCORRELATION OF Cm AND Tau
-NbofLags = 70;
+NbofLags = xy.nframe-1;
 Ycorr = autocorr(Cm,'Numlags',NbofLags);
-Xcorr = (0:70)*FSav;
+Xcorr = (0:xy.nframe-1)*FSav;
 T_Ycorr = transpose(Ycorr);
 T_Xcorr = transpose(Xcorr);
-expofit = fit(T_Xcorr,T_Ycorr,'exp1');
-% Harvesting expofit coefficients
-fita = expofit.a;
-tau = (-FSav/expofit.b);
+% CORRELATION TIME
+for j = 1 : xy.nframe
+    if -0.005 < Ycorr(j) && Ycorr(j) < 0.005
+        Corrframe(j) = j;
+    else
+        Corrframe(j) = 0;
+    end
+    CORR(j) = Corrframe(j) > 0; %Logical matrix: 1 = Ycorr ~ 0
+    Indexones = Corrframe(CORR); %Records the frame indexes when Ycorr ~ 0
+    Sum = 0;
+    for i = 1 : length(Indexones)-1
+        if Indexones(i+1) == Indexones(i) + 1 %If there is no frame left between two frame indexes where Ycorr ~ 0, then start incrementing 
+            Sum = 1 + Sum;
+        else
+            Sum = Sum;
+        end
+        if Sum == fivepercent-1 %When Ycorr has been ~ 0 for a while (5% of total number of frames), decorrelation is supposed to have happened.
+            Limitcorrframe = Indexeones(i-fivepercent); %Stores the frame index at which Ycorr starts being 0 for a long time
+        elseif Sum > fivepercent+1
+            Difference = Sum - fivepercent+1;
+            Limitcorrframe = Indexones(i-fivepercent-Difference);
+        else
+            Limitcorrframe = 0;
+        end
+    end
+end
+if Limitcorrframe == 0
+    input_plotautocorr = input('Decorrelation did not occur. Do you still want to plot the autocorr function? Press: \n 1 = yes \n 2 = no \n');
+    if input_plotautocorr == 1
+        input_NbofLags = input('Choose your decorrelation frame : \n');
+        Ycorr = autocorr(Cm,'Numlags',input_NbofLags);
+        Xcorr = (0:input_NbofLags)*FSav;
+        T_Ycorr = transpose(Ycorr);
+        T_Xcorr = transpose(Xcorr);
+        expofit = fit(T_Xcorr,T_Ycorr,'exp1'); %Limitcorrtime with smoothing of the curve
+        fita = expofit.a;
+        tau = (-FSav/expofit.b);
+    else
+        disp('No autocorr function plotted.')
+    end
+else
+    Limitcorrtime = Limitcorrframe * FSav; %equivalent to tau (without smoothing)
+    input_NbofLags = input(strcat('The decorrelation frame is ', num2str(Limitcorrframe),' over ', num2str(xy.nframe),' frames. Choose your decorrelation frame : \n'));
+    Ycorr = autocorr(Cm,'Numlags',input_NbofLags);
+    Xcorr = (0:input_NbofLags)*FSav;
+    T_Ycorr = transpose(Ycorr);
+    T_Xcorr = transpose(Xcorr);
+    expofit = fit(T_Xcorr,T_Ycorr,'exp1'); %Limitcorrtime with smoothing of the curve
+    fita = expofit.a;
+    tau = (-FSav/expofit.b);
+end
 
 % ROTATIONAL DIFFUSION TIME FOR PROLATE BODIES
 %       * Boltzmann constant kb in m2 kg s-2 K-1
@@ -243,6 +290,7 @@ plot(Time, CAndreas);
 %End of plotting on the same figure
 hold off
 saveas(gcf,'Fig1_Phi-and-C','pdf');
+saveas(gcf,'Fig1_Phi-and-C','fig');
 %
 % ** Figure (2): Phi(t) and Cm(t)
 %
@@ -258,6 +306,7 @@ ylabel('Cm');
 plot(Time, Cm);
 hold off
 saveas(gcf,'Fig2_Phi-and-Cm','pdf');
+saveas(gcf,'Fig2_Phi-and-Cm','fig');
 %
 % ** Figure (3): Phi and LpMIC
 %
@@ -273,6 +322,7 @@ ylabel('Lp (µm)');
 plot(Time, LpMIC);
 hold off
 saveas(gcf,'Fig3_Phi-and-LpMIC','pdf');
+saveas(gcf,'Fig3_Phi-and-LpMIC','fig');
 %
 % ** Figure (4): C and Cm
 %
@@ -288,6 +338,7 @@ ylabel('Cm');
 plot(Time, Cm);
 hold off
 saveas(gcf,'Fig4_C-and-Cm','pdf');
+saveas(gcf,'Fig4_C-and-Cm','fig');
 %
 % ** Figure (5): LpMIC, Unx, Uny, UNZ
 figure()
@@ -305,28 +356,39 @@ plot(Time, Unz);
 hold off
 legend('Lp','Unx','Uny','Unz')
 saveas(gcf,'Fig5_LpMIC-Unx-Uny-Unz','pdf');
+saveas(gcf,'Fig5_LpMIC-Unx-Uny-Unz','fig');
 
 % PLOTTING THE AUTOCORRELATION FUNCTION
+if Limitcorrframe == 0
+    disp('Decorrelation did not occur.')
+else
 figure()
 plot(expofit,T_Xcorr,T_Ycorr);
 saveas(gcf,'Fig6_autocorr-Cm','pdf');
+saveas(gcf,'Fig6_autocorr-Cm','fig');
+end
 
 % PLOT PROBABILITY DENSITY FUNCTIONS (PDF) FOR Lp, PHI, THETA, Cm
 figure()
 PDF_Lp(LpMIC)
 saveas(gcf,'Fig7_PDF-Lp','pdf');
+saveas(gcf,'Fig7_PDF-Lp','fig');
 figure()
 PDF_phi(phi)
 saveas(gcf,'Fig8_PDF-Phi','pdf');
+saveas(gcf,'Fig8_PDF-Phi','fig');
 figure()
 PDF_theta(theta)
 saveas(gcf,'Fig9_PDF-Theta','pdf');
+saveas(gcf,'Fig9_PDF-Theta','fig');
 figure()
 PDF_xsi(xsi)
 saveas(gcf,'Fig10_PDF-Xsi','pdf');
+saveas(gcf,'Fig10_PDF-Xsi','fig');
 figure()
 PDF_Cm(Cm)
 saveas(gcf,'Fig11_PDF-Cm','pdf');
+saveas(gcf,'Fig11_PDF-Cm','fig');
 %D'après Martyna:
 %figure;
 %histogram(phi,nbdebarres,'Normalization','pdf')
@@ -450,7 +512,7 @@ writematrix(npnts,filename,'Sheet',3,'Range','B13');
 %
 % GIVING NAMES TO THE EXCEL SHEETS
 e = actxserver('Excel.Application'); % # open Activex server
-ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified code\additionaldata.xlsx'); % # open file (enter full path!)
+ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified_newcode\additionaldata.xlsx'); % # open file (enter full path!)
 ewb.Worksheets.Item(1).Name = 'Data'; % # rename 1st sheet
 ewb.Worksheets.Item(2).Name = 'Frames and Flagellum'; % # rename 2nd sheet
 ewb.Worksheets.Item(3).Name = 'Code Parameters'; % # rename 3rd sheet
