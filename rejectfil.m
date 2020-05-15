@@ -28,7 +28,7 @@ function xy = rejectfil(XY,centroid,improc,N_fil,ds,prcs_img,missed,framelist)
 % *         xy(1).spl{50}(:,1) gives the x-coordinates (:,1) of filament 1 at j = 50  
 % *         xy(1).frame(50) gives the number of the frame in the original tiff file, located at j = 50 
 % *         xy(3).emptyframe gives the list of frames where the filament 3 has not been detected
-% *         xy(1).arclen(756) gives the arc length of filament 1 when j = 756
+% *         xy(1).arclen(756) gives the arc length of filament 2 when j = 756
 
 
 %% calculate the arc length of each filament in each frame
@@ -48,22 +48,19 @@ arclen(arclen==0)=NaN; % set to NaN zero-length filament
 
 %% reject frames based on arclength
 
+
 if improc > 2 % compute only if we have statistics
 mean_s = nanmean(arclen,2);
-std_s = nanstd(arclen,[],2); 
-% nanstd takes 3 arguments, including the domain, which must be the last
-% one; the second argument, "flag", must be empty and needs therefore to be
-% set as such with [].
-%2 corresponds here to average on the variance lines, each corresponding to a different filament.
+std_s = nanstd(arclen,2); %std(arclen,0,2,'omitnan')
 
-%accept only filaments within a range of arclengths, reorder the coordinates
+% accept only filaments within a range of arclengths, reorder the coordinates
 for j = 1 : improc
 for i = 1 : N_fil
 if abs(arclen(i,j)- mean_s(i)) < std_s(i) 
-   XYr{i,j}(:,1) = XY{i,j}(:,1);
-   XYr{i,j}(:,2) = XY{i,j}(:,2);
+    XYr{i,j}(:,1) = XY{i,j}(:,1);
+    XYr{i,j}(:,2) = XY{i,j}(:,2);
 else
-   XYr{i,j}=[];
+    XYr{i,j}=[];
 end
 end
 end

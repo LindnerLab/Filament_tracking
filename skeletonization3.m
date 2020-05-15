@@ -1,4 +1,4 @@
-function [fiber_img,blur_img,BI,skel,L,curr_img,ROI] = skeletonization3(pathintif,lzero,imi,imspace,imtot,...
+function [fiber_img,blur_img,BI,skel,L,curr_img,ROI] = skeletonization3(pathintif,inv,lzero,imi,imspace,imtot,...
     thickness,structsens,lnoise,lobject,threshold,sensitivity,MinBranchLength,FilNum)
 
 %% retrieve the ROI in the image stack and the edge thickness
@@ -15,11 +15,17 @@ curr_img = zeros(1,length(imi : imspace : imtot));
 
 cnt=1;
 for j = imi : imspace : imtot
-    
-imgn = imread(pathintif,j); 
+
+imgn = imread(pathintif,j);
+
+if inv==1
+    imgn = imcomplement(imgn); 
+end
 
 % enanche fibers in the image with predefined thickness
-fiber_img = fibermetric(imgn,thickness,'StructureSensitivity',structsens);
+fiber_img = vesselness2D(imgn,thickness, [1;1], structsens, true); % another useful function
+
+% fiber_img = fibermetric(imgn,thickness,'StructureSensitivity',structsens);
      
 % apply gaussian blur
 blur_img = gaussian_blur(fiber_img,lnoise,lobject,threshold);
@@ -37,15 +43,24 @@ BI = bwareafilt(BI,FilNum); % extract object based on area, where FilNum is the 
 
 bnd = bwboundaries(BI,'noholes'); % find boundary coordinates of all objects in the FOV
 % smooth the edges of each objects in the FOV, then recontruct a binary image for each objects 
- for i = 1 : FilNum
+Nedges = 0.5*cellfun(@numel,bnd); 
+
+for i = 1 : FilNum
+    if isempty(Nedges) 
+        sprintf('Error: object in image %d has no boundary',j)
+    else    
 clear xc yc
-xc = smooth(bnd{i}(:,1),1); % data matrix
-yc = smooth(bnd{i}(:,2),10); % how many data are used to average (last number); here, 10.
+xc = smooth(bnd{i}(:,1),10);
+yc = smooth(bnd{i}(:,2),10);
 s{i} = transpose(poly2mask(xc,yc,size(skel,2),size(skel,1)));
+    end
  end
 % sum all objects, with smoothed edges, to recontruct the original binary image
+    if isempty(Nedges) 
+      
+    else    
 BI = logical(sum(cat(3,s{:}),3));  
-
+    end
 %% skeletonization 
 skel(:,:,cnt) = bwskel(BI,'MinBranchLength',MinBranchLength); % skeletonization function
 

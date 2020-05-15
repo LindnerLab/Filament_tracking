@@ -1,4 +1,4 @@
-function xy = elongated_objects_trajectories(basepath,batch,tifname,thickness,structsensitivity,lnoise,lobject,threshold,FilNum,sensitivity,MinBranchLength,ds,npnts)
+function xy = elongated_objects_trajectories(basepath,batch,tifname,inv,thickness,structsensitivity,lnoise,lobject,threshold,FilNum,sensitivity,MinBranchLength,ds,npnts)
 
 %% FIND THE TRAJECTORIES OF THE ELONGATED OBJECTS 
 
@@ -113,7 +113,7 @@ else
 end
 
 %% skeletonization of a test image
-[fiber_img,blur_img,BI,~,L,curr_img,ROI] = skeletonization3(pathintif,lzero,initial_frame,frame_step,final_frame,...
+[fiber_img,blur_img,BI,~,L,curr_img,ROI] = skeletonization3(pathintif,inv,lzero,initial_frame,frame_step,final_frame,...
     thickness,structsensitivity,lnoise,lobject,threshold,sensitivity,MinBranchLength,FilNum);
 
 % plot the main results
@@ -169,7 +169,7 @@ else
 end
 
 %% skeletonization of all selected frames 
-[~,~,~,~,L,curr_img,ROI] = skeletonization3(pathintif,lzero,initial_frame,frame_step,final_frame,...
+[~,~,~,~,L,curr_img,ROI] = skeletonization3(pathintif,inv,lzero,initial_frame,frame_step,final_frame,...
     thickness,structsensitivity,lnoise,lobject,threshold,sensitivity,MinBranchLength,FilNum);
 
 end
@@ -214,10 +214,10 @@ xy = spline_centerline(xy,N_fil,ds,npnts);
 file2save = strcat(pathout,'trajectory_',tifrooth,'_batch',num2str(batch));
 
 save(strcat(file2save,'.mat'),'thickness','structsensitivity','lnoise','lobject','threshold','ds',...
-    'npnts','FilNum','initial_frame',...
+    'npnts','FilNum','initial_frame','imtot',...
     'frame_step','final_frame','framelist','improc','InfoImage','L',...,
     'MinBranchLength','ROI','missed_frames',...
-    'N_fil','prcs_img','sensitivity','xy')
+    'N_fil','prcs_img','sensitivity','xy','pathintif')
 
 figure('Name','trajectory');
 for k =1 : xy.nframe

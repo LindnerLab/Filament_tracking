@@ -13,7 +13,7 @@ N_fil = size(U,1)-1; % extract number of filaments in the j-th frame
 % frame number where they do not coincide
 
 if N_fil ~= FilNum
-  disp(strcat('Error: wrong number of filaments in  image: ', num2str(j)))
+  disp(strcat('Error: wrong number of filaments in image: ', num2str(j)))
   disp(strcat('Expected:',num2str(FilNum)));
   disp(strcat('Found:',num2str(N_fil)));
   missed = [missed,j];
