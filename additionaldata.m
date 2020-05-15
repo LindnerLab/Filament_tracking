@@ -90,8 +90,9 @@ Time = transpose([1:length(xy.frame)]*FSav);
 % Batch 5: diameter = 0.977; fil_length = 7.887;
 % Batch 6: diameter = 0.834; fil_length = 4.844;
 % Batch 7: diameter = 0.886; fil_length = 7.852;
-diameter = 0.912;
-fil_length = 8.076;
+in_diameter = 0.912;
+in_fil_length = 8.076;
+fil_length = in_fil_length;
 lambda = fil_length/diameter;
 
 % ON THE XY PLANE
@@ -120,9 +121,11 @@ LmeanMIC = sum(LpMIC)/xy.nframe;
 if Lav5MIC > fil_length
     fil_length = Lav5MIC;
     lambda = fil_length/diameter;
+    disp('Initial filament length was replaced by Lav5MIC.')
 else
     fil_length = fil_length;
     lambda = fil_length/diameter;
+    disp('Initial filament length was conserved.')
 end
 
 % OUT-OF-PLANE (IN 3D)
@@ -198,16 +201,17 @@ for j = 1 : xy.nframe
         end
     end
 end
+Maximaldurationwhenautocorrisnul = (Sum+1)*FSav;
 if Limitcorrframe == 0
     Limitcorrtime = 0;
     input_plotautocorr = input('Decorrelation did not occur. Do you still want to plot the autocorr function? Press: \n 1 = yes \n 2 = no \n');
     if input_plotautocorr == 1
         input_NbofLags = input('Choose your decorrelation frame : \n');
         Ycorr = autocorr(Cm,'Numlags',input_NbofLags);
-        Xcorr = (0:input_NbofLags)*FSav;
+        Xcorr = (1:input_NbofLags+1)*FSav;
         T_Ycorr = transpose(Ycorr);
         T_Xcorr = transpose(Xcorr);
-        expofit = fit(T_Xcorr,T_Ycorr,'exp1'); %Limitcorrtime with smoothing of the curve
+        expofit = fit(T_Xcorr,T_Ycorr,'exp1','StartPoint',[T_Xcorr(100),T_Ycorr(100)]); %Limitcorrtime with smoothing of the curve
         fita = expofit.a;
         tau = (-FSav/expofit.b);
     else
@@ -219,10 +223,10 @@ else
     Limitcorrtime = Limitcorrframe * FSav; %equivalent to tau (without smoothing)
     input_NbofLags = input(strcat('The decorrelation frame is ', num2str(Limitcorrframe),' over ', num2str(xy.nframe),' frames. Choose your decorrelation frame : \n'));
     Ycorr = autocorr(Cm,'Numlags',input_NbofLags);
-    Xcorr = (0:input_NbofLags)*FSav;
+    Xcorr = (1:input_NbofLags+1)*FSav;
     T_Ycorr = transpose(Ycorr);
     T_Xcorr = transpose(Xcorr);
-    expofit = fit(T_Xcorr,T_Ycorr,'exp1'); %Limitcorrtime with smoothing of the curve
+    expofit = fit(T_Xcorr,T_Ycorr,'exp1','StartPoint',[T_Xcorr(100),T_Ycorr(100)]); %Limitcorrtime with smoothing of the curve
     fita = expofit.a;
     tau = (-FSav/expofit.b);
 end
@@ -420,14 +424,14 @@ xlswrite(filename,{'Phi (deg)'},'Feuil1','I1');
 xlswrite(filename,{'Theta (deg)'},'Feuil1','J1');
 xlswrite(filename,{'Andreas Jeff. C'},'Feuil1','K1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','L1');
-xlswrite(filename,{'Limit decorrelation time (s)'},'Feuil1','M1');
-xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','N1');
-xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','O1');
-xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','P1');
-xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','Q1');
+xlswrite(filename,{'Maximal duration when autocorr=0 (s)'},'Feuil1','M1');
+xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','N1');
+xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','O1');
+xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','P1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','Q1');
+xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','R1');
 % FOR HORIZONTAL HELE-SHAW CELLS
 %xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','K1');
-%
 %
 % ** Writing out data by columns on the Excel sheet 1
 % Using transpose() because data are by default organized in rows instead of columns
@@ -443,11 +447,12 @@ writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'I2');
 writematrix(transpose(thetaindeg),filename,'Sheet',1, 'Range', 'J2');
 writematrix(transpose(CAndreas),filename,'Sheet',1, 'Range', 'K2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'L2');
-writematrix(Limitcorrtime,filename,'Sheet',1,'Range','M2');
-writematrix(tau,filename,'Sheet',1,'Range','N2');
-writematrix(tau_r,filename,'Sheet',1,'Range','O2');
-writematrix(tJ,filename,'Sheet',1,'Range','P2');
-writematrix(Losingmemory,filename,'Sheet',1,'Range','Q2');
+writematrix(Maximaldurationwhenautocorrisnul,filename,'Sheet',1, 'Range', 'M2');
+writematrix(Limitcorrtime,filename,'Sheet',1,'Range','N2');
+writematrix(tau,filename,'Sheet',1,'Range','O2');
+writematrix(tau_r,filename,'Sheet',1,'Range','P2');
+writematrix(tJ,filename,'Sheet',1,'Range','Q2');
+writematrix(Losingmemory,filename,'Sheet',1,'Range','R2');
 % FOR HORIZONTAL HELE-SHAW CELLS
 %writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'J2'); %for horizontal Hele-Shaw cells
 %
@@ -466,11 +471,12 @@ xlswrite(filename,{'Nb of treated frames'},'Feuil2','A9');
 xlswrite(filename,{'Nb of empty frames'},'Feuil2','A10');
 %
 xlswrite(filename,{'FLAGELLUM INFO'},'Feuil2','A11');
-xlswrite(filename,{'Diameter (µm)'},'Feuil2','A12');
-xlswrite(filename,{'Length (µm)'},'Feuil2','A13');
-xlswrite(filename,{'Aspect ratio lambda'},'Feuil2','A14');
-xlswrite(filename,{'Average length Lmean (µm)'},'Feuil2','A15');
-xlswrite(filename,{'Average maximal length Lav5 over 5% of Lp (µm)'},'Feuil2','A16');
+xlswrite(filename,{'Initial diameter (µm)'},'Feuil2','A12');
+xlswrite(filename,{'Initial length (µm)'},'Feuil2','A13');
+xlswrite(filename,{'Average length Lmean (µm)'},'Feuil2','A14');
+xlswrite(filename,{'Average maximal length Lav5 over 5% of Lp (µm)'},'Feuil2','A15');
+xlswrite(filename,{'Choosen length (µm)'},'Feuil2','A16');
+xlswrite(filename,{'Aspect ratio lambda'},'Feuil2','A17');
 %
 % Writing out data by rows on the Excel sheet 2
 writematrix(F,filename,'Sheet',2,'Range','B2');
@@ -484,10 +490,11 @@ writematrix(xy.nframe,filename,'Sheet',2,'Range','B9');
 writematrix(length(xy.emptyframe),filename,'Sheet',2,'Range','B10');
 %
 writematrix(diameter,filename,'Sheet',2,'Range','B12');
-writematrix(fil_length,filename,'Sheet',2,'Range','B13');
-writematrix(lambda,filename,'Sheet',2,'Range','B14');
-writematrix(LmeanMIC,filename,'Sheet',2,'Range','B15');
-writematrix(Lav5MIC,filename,'Sheet',2,'Range','B16');
+writematrix(in_fil_length,filename,'Sheet',2,'Range','B13');
+writematrix(LmeanMIC,filename,'Sheet',2,'Range','B14');
+writematrix(Lav5MIC,filename,'Sheet',2,'Range','B15');
+writematrix(fil_length,filename,'Sheet',2,'Range','B16');
+writematrix(lambda,filename,'Sheet',2,'Range','B17');
 %
 % * CODE PARAMETERS (SHEET 3)
 %
@@ -519,10 +526,10 @@ writematrix(sensitivity,filename,'Sheet',3,'Range','B10');
 writematrix(MinBranchLength,filename,'Sheet',3,'Range','B11');
 writematrix(ds,filename,'Sheet',3,'Range','B12');
 writematrix(npnts,filename,'Sheet',3,'Range','B13');
-%
+
 % GIVING NAMES TO THE EXCEL SHEETS
 e = actxserver('Excel.Application'); % # open Activex server
-ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified_newcode\additionaldata.xlsx'); % # open file (enter full path!)
+ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified code\additionaldata.xlsx'); % # open file (enter full path!)
 ewb.Worksheets.Item(1).Name = 'Data'; % # rename 1st sheet
 ewb.Worksheets.Item(2).Name = 'Frames and Flagellum'; % # rename 2nd sheet
 ewb.Worksheets.Item(3).Name = 'Code Parameters'; % # rename 3rd sheet
