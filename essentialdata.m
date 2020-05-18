@@ -111,8 +111,8 @@ hWorksheet = ewb.Worksheets.Item(1);
 hWorksheet.Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - FRAMES & FLAGELLUM
 hWorksheet.Range('A6:B6').Interior.Color=hex2dec('F0F4C3'); % # color row A6 - DATA
 hWorksheet.Range('A7:B7').Interior.Color=hex2dec('d8edeb'); % # color row A7 - DATA - Under-estimate
-hWorksheet.Range('A14:B14').Interior.Color=hex2dec('d8edeb'); % # color row A14 - DATA - Over-estimate
-hWorksheet.Range('A19:B19').Interior.Color=hex2dec('d8edeb'); % # color row A19 - DATA - General
+hWorksheet.Range('A15:B15').Interior.Color=hex2dec('d8edeb'); % # color row A15 - DATA - Over-estimate
+hWorksheet.Range('A20:B20').Interior.Color=hex2dec('d8edeb'); % # color row A20 - DATA - General
 hWorksheet.Columns.Item(1).columnWidth = 50; % width of the first column
 ewb.Save;
 ewb.Close(false)
