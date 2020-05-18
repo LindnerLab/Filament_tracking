@@ -41,7 +41,7 @@ else
 end
 Limitcorrtime1 = Limitcorrtime1;
 Limitcorrtimesmooth1 = tau1;
-if ne(Limitcorrtime2,0) == 0
+if ne(Limitcorrtime2,0) == 1
     Decorrelation2 = 'YES';
     Limitcorrtimesmooth2 = tau2;
 else
