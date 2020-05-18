@@ -170,20 +170,26 @@ for j = 1 : xy.nframe
 end
 
 % AUTOCORRELATION OF Cm AND Tau
-NbofLags = xy.nframe-1;
+% CORRELATION TIME WITH CONFIDENCE BOUNDS
+NbofLags = xy.nframe - 1;
 Ycorr = autocorr(Cm,'Numlags',NbofLags);
-Xcorr = (0:xy.nframe-1)*FSav;
+Xcorr = (0:NbofLags)*FSav;
 T_Ycorr = transpose(Ycorr);
 T_Xcorr = transpose(Xcorr);
-% CORRELATION TIME
+%
+% ** (1) UNDER-ESTIMATED CORRELATION TIME (MINIMAL % OF POINTS IN CONFIDENCE BOUNDS)
+Bound1 = 0.05; %default: -0.005;0.005
+Percent_threshold1 = 20;
+Percent1 = round( (Percent_threshold1)/100 * xy.nframe);
+Decorrthreshold1 = Percent1 * FSav;
 for j = 1 : xy.nframe
-    if -0.005 < Ycorr(j) && Ycorr(j) < 0.005
-        Corrframe(j) = j;
+    if -Bound1 < Ycorr(j) && Ycorr(j) < Bound1 
+        Corrframe1(j) = j;
     else
-        Corrframe(j) = 0;
+        Corrframe1(j) = 0;
     end
-    CORR(j) = Corrframe(j) > 0; %Logical matrix: 1 = Ycorr ~ 0
-    Indexones = Corrframe(CORR); %Records the frame indexes when Ycorr ~ 0
+    CORR1(j) = Corrframe1(j) > 0; %Logical matrix: 1 = Ycorr ~ 0
+    Indexones = Corrframe1(CORR1); %Records the frame indexes when Ycorr ~ 0
     Sum = 0;
     for i = 1 : length(Indexones)-1
         if Indexones(i+1) == Indexones(i) + 1 %If there is no frame left between two frame indexes where Ycorr ~ 0, then start incrementing 
@@ -191,47 +197,85 @@ for j = 1 : xy.nframe
         else
             Sum = Sum;
         end
-        if Sum == fivepercent-1 %When Ycorr has been ~ 0 for a while (5% of total number of frames), decorrelation is supposed to have happened.
-            Limitcorrframe = Indexeones(i-fivepercent); %Stores the frame index at which Ycorr starts being 0 for a long time
-        elseif Sum > fivepercent-1
-            Difference = Sum - fivepercent+1;
-            Limitcorrframe = Indexones(i-fivepercent+1-Difference);
+        if Sum == Percent1-1 %When Ycorr has been ~ 0 for a while (5% of total number of frames), decorrelation is supposed to have happened.
+            Limitcorrframe1 = Indexones(i-Percent1); %Stores the frame index at which Ycorr starts being 0 for a long time
+        elseif Sum > Percent1-1
+            Difference = Sum - Percent1+1;
+            Limitcorrframe1 = Indexones(i-Percent1+1-Difference);
         else
-            Limitcorrframe = 0;
+            Limitcorrframe1 = 0;
         end
     end
 end
-Maximaldurationwhenautocorrisnul = (Sum+1)*FSav;
-if Limitcorrframe == 0
-    Limitcorrtime = 0;
-    input_plotautocorr = input('Decorrelation did not occur. Do you still want to plot the autocorr function? Press: \n 1 = yes \n 2 = no \n');
-    if input_plotautocorr == 1
-        input_NbofLags = input('Choose your decorrelation frame-1 : \n');
-        Ycorr = autocorr(Cm,'Numlags',input_NbofLags-1);
-        Xcorr = (1:input_NbofLags)*FSav;
-        T_Ycorr = transpose(Ycorr);
-        T_Xcorr = transpose(Xcorr);
-        Fitstart = 70;
-        expofit = fit(T_Xcorr,T_Ycorr,'exp1','StartPoint',[T_Xcorr(Fitstart),T_Ycorr(Fitstart)]); %Limitcorrtime with smoothing of the curve
-        fita = expofit.a;
-        tau = (-FSav/expofit.b);
+
+% ** (2) OVER-ESTIMATED CORRELATION TIME (ALL FOLLOWING YCORR ARE INCLUDED IN CONFIDENCE INTERVAL)
+Bound2 = 0.1; %default: std(autocorr(Cm))
+for j = 1 : xy.nframe
+    if -Bound2 < Ycorr(j) && Ycorr(j) < Bound2
+        Corrframe2(j) = j;
     else
-        input_NbofLags = 0;
+        Corrframe2(j) = 0;
+    end
+    CORR2(j) = Corrframe2(j) > 0;
+end
+%for j = xy.nframe : -1 : 1
+j = length(CORR2);
+while CORR2(j) == 1
+   j=j-1;
+end
+Limitcorrframe2 = j+1;
+
+% ** CALCULATE BOTH (1) AND (2) CORRELATION TIME AND PLOT
+Maxdecorrduration1 = (Sum+1)*FSav;
+Fitstart1 = 20;
+Fitstart2 = 20;
+% METHOD 2
+if Limitcorrframe2 == 0
+    Limitcorrtime2 = 0;
+    disp('Decorrelation did not occur according to METHOD 2 (OVER-ESTIMATE): sample is too short.')
+    input_NbofLags2 = 0;
+    tau2 = 0;
+else
+    Limitcorrtime2 = Limitcorrframe2 * FSav; %equivalent to tau (without smoothing)
+    input_NbofLags2 = input(strcat('The decorrelation frame is ', num2str(Limitcorrframe2),' over ', num2str(xy.nframe),' frames according to METHOD 2 (OVER-ESTIMATE). Choose your NbofLags-1 (Method 2) : \n'));
+    Ycorr2 = autocorr(Cm,'Numlags',input_NbofLags2-1);
+    Xcorr2 = (1:input_NbofLags2)*FSav;
+    T_Ycorr2 = transpose(Ycorr2);
+    T_Xcorr2 = transpose(Xcorr2);
+    expofit2 = fit(T_Xcorr2,T_Ycorr2,'exp1','StartPoint',[T_Xcorr2(Fitstart2),T_Ycorr2(Fitstart2)]); 
+    fita2 = expofit2.a;
+    tau2 = (-FSav/expofit2.b); %Limitcorrtime with smoothing of the curve
+end
+% METHOD 1
+if Limitcorrframe1 == 0
+    Limitcorrtime1 = 0;
+    input_plotautocorr = input('Decorrelation did not occur according to METHOD 1 (UNDER-ESTIMATE). Do you still want to plot the autocorr function? Press: \n 1 = yes \n 2 = no \n');
+    if input_plotautocorr == 1
+        input_NbofLags1 = input('Choose your NbofLags-1 (Method 1) : \n');
+        Ycorr1 = autocorr(Cm,'Numlags',input_NbofLags1-1);
+        Xcorr1 = (1:input_NbofLags1)*FSav;
+        T_Ycorr1 = transpose(Ycorr1);
+        T_Xcorr1 = transpose(Xcorr1);
+        expofit1 = fit(T_Xcorr1,T_Ycorr1,'exp1','StartPoint',[T_Xcorr1(Fitstart1),T_Ycorr1(Fitstart1)]);
+        fita1 = expofit1.a;
+        tau1 = (-FSav/expofit1.b);
+    else
+        input_NbofLags1 = 0;
         disp('No autocorr function plotted. Tau is not valid.')
-        tau = 0;
+        tau1 = 0;
     end
 else
-    Limitcorrtime = Limitcorrframe * FSav; %equivalent to tau (without smoothing)
-    input_NbofLags = input(strcat('The decorrelation frame is ', num2str(Limitcorrframe),' over ', num2str(xy.nframe),' frames. Choose your decorrelation frame+1 : \n'));
-    Ycorr = autocorr(Cm,'Numlags',input_NbofLags-1);
-    Xcorr = (1:input_NbofLags)*FSav;
-    T_Ycorr = transpose(Ycorr);
-    T_Xcorr = transpose(Xcorr);
-    expofit = fit(T_Xcorr,T_Ycorr,'exp1','StartPoint',[T_Xcorr(100),T_Ycorr(100)]); %Limitcorrtime with smoothing of the curve
-    fita = expofit.a;
-    tau = (-FSav/expofit.b);
-end
-
+    Limitcorrtime1 = Limitcorrframe1 * FSav; %equivalent to tau (without smoothing)
+    input_NbofLags1 = input(strcat('The decorrelation frame is ', num2str(Limitcorrframe1),' over ', num2str(xy.nframe),' frames according to METHOD 1 (UNDER-ESTIMATE). Choose your NbofLags-1 (Method 1) : \n'));
+    Ycorr1 = autocorr(Cm,'Numlags',input_NbofLags1-1);
+    Xcorr1 = (1:input_NbofLags1)*FSav;
+    T_Ycorr1 = transpose(Ycorr1);
+    T_Xcorr1 = transpose(Xcorr1);
+    expofit1 = fit(T_Xcorr1,T_Ycorr1,'exp1','StartPoint',[T_Xcorr1(Fitstart1),T_Ycorr1(Fitstart1)]); %Limitcorrtime with smoothing of the curve
+    fita1 = expofit1.a;
+    tau1 = (-FSav/expofit1.b);        
+end           
+    
 % ROTATIONAL DIFFUSION TIME FOR PROLATE BODIES
 %       * Boltzmann constant kb in m2 kg s-2 K-1
 %       * T Temperature in Kelvin (ambient temperature)
@@ -266,7 +310,7 @@ tau_r = 1/(2*Dr);
 % !!!! in some cases, gammadot changes with time as the filament deviates from a straight line trajectory
 gammadot = 16.8;
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
-Losingmemory = tau/tJ;
+Losingmemory = tau1/tJ;
 
 %~~~~PLOTTING FIGURES
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -367,19 +411,32 @@ saveas(gcf,'Fig5_LpMIC-Unx-Uny-Unz','pdf');
 saveas(gcf,'Fig5_LpMIC-Unx-Uny-Unz','fig');
 
 % PLOTTING THE AUTOCORRELATION FUNCTION
-if input_NbofLags == 0
+if input_NbofLags1 == 0 && input_NbofLags2 ==0
     disp('Decorrelation did not occur.')
-else
+elseif ne(input_NbofLags1,0)==1 || ne(input_NbofLags2,0)==1
     figure()
     hold on
-    if ne(Limitcorrtime,0) == 1 %If Limitcorrtime is not equal to 0
-        xline(Limitcorrtime,'r:','Decorrelation time');
+    if ne(Limitcorrtime1,0) == 1 %If Limitcorrtime1 is not equal to 0
+        xline(Limitcorrtime1,'r:','UNDER-ESTIMATED decorrelation time (1)');
     end
-    plot(expofit,T_Xcorr,T_Ycorr);
-    xline(Fitstart*FSav,'g','Starting point of data included in fit');
+    if ne(Limitcorrtime2,0) == 1
+        xline(Limitcorrtime2,'r:','OVER-ESTIMATED decorrelation time (2)');
+    end
+    plot(expofit1,T_Xcorr,T_Ycorr);
+    xline(Fitstart1*FSav,'g','Starting point Fit1');
+    xline(Xcorr1(length(Xcorr1)),'g','Endpoint Fit1');
+    yline(Bound1,'c','Confid. bounds1');
+    yline(-Bound1,'c');
+    if ne(input_NbofLags2,0) == 1
+        plot(expofit2);
+        xline(Fitstart2*FSav,'g','Starting point Fit2');
+        yline(Bound2,'m','Confid. bounds 2');
+        yline(-Bound2,'m');
+    end
     title('Autocorrelation of Cm')
     xlabel('Time (s)')
     ylabel('<Cm(t)Cm(t+lag)>')
+    legend('hide')
     hold off
     saveas(gcf,'Fig6_autocorr-Cm','pdf');
     saveas(gcf,'Fig6_autocorr-Cm','fig');
@@ -429,13 +486,15 @@ xlswrite(filename,{'Phi (deg)'},'Feuil1','I1');
 xlswrite(filename,{'Theta (deg)'},'Feuil1','J1');
 xlswrite(filename,{'Andreas Jeff. C'},'Feuil1','K1');
 xlswrite(filename,{'Modif. Jeff. Cm'},'Feuil1','L1');
-xlswrite(filename,{'Maximal duration when autocorr=0 (s)'},'Feuil1','M1');
-xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','N1');
-xlswrite(filename,{'Expofit coeff tau (s)'},'Feuil1','O1');
-xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','P1');
-xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','Q1');
-xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','R1');
-xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','S1');
+xlswrite(filename,{'Maximal duration (1) when autocorr=0 (s)'},'Feuil1','M1');
+xlswrite(filename,{'UNDER-estimated decorr time (1) (s)'},'Feuil1','N1');
+xlswrite(filename,{'OVER-estimated decorr time (2) (s)'},'Feuil1','O1');
+xlswrite(filename,{'Expofit1 coeff tau1 (s)'},'Feuil1','P1');
+xlswrite(filename,{'Expofit2 coeff tau2 (s)'},'Feuil1','Q1');
+xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','R1');
+xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','S1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','T1');
+xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','U1');
 
 % FOR HORIZONTAL HELE-SHAW CELLS
 %xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','K1');
@@ -454,13 +513,15 @@ writematrix(transpose(phiindeg),filename,'Sheet',1, 'Range', 'I2');
 writematrix(transpose(thetaindeg),filename,'Sheet',1, 'Range', 'J2');
 writematrix(transpose(CAndreas),filename,'Sheet',1, 'Range', 'K2');
 writematrix(transpose(Cm),filename,'Sheet',1, 'Range', 'L2');
-writematrix(Maximaldurationwhenautocorrisnul,filename,'Sheet',1, 'Range', 'M2');
-writematrix(Limitcorrtime,filename,'Sheet',1,'Range','N2');
-writematrix(tau,filename,'Sheet',1,'Range','O2');
-writematrix(gammadot,filename,'Sheet',1,'Range','P2');
-writematrix(tau_r,filename,'Sheet',1,'Range','Q2');
-writematrix(tJ,filename,'Sheet',1,'Range','R2');
-writematrix(Losingmemory,filename,'Sheet',1,'Range','S2');
+writematrix(Maxdecorrduration1,filename,'Sheet',1, 'Range', 'M2');
+writematrix(Limitcorrtime1,filename,'Sheet',1, 'Range', 'N2');
+writematrix(Limitcorrtime2,filename,'Sheet',1, 'Range', 'O2');
+writematrix(tau1,filename,'Sheet',1,'Range','P2');
+writematrix(tau2,filename,'Sheet',1, 'Range', 'Q2');
+writematrix(gammadot,filename,'Sheet',1,'Range','R2');
+writematrix(tau_r,filename,'Sheet',1,'Range','S2');
+writematrix(tJ,filename,'Sheet',1,'Range','T2');
+writematrix(Losingmemory,filename,'Sheet',1,'Range','U2');
 % FOR HORIZONTAL HELE-SHAW CELLS
 %writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'J2'); %for horizontal Hele-Shaw cells
 %
@@ -475,8 +536,10 @@ xlswrite(filename,{'Average frame step (s)'},'Feuil2','A5');
 xlswrite(filename,{'First frame treated'},'Feuil2','A6');
 xlswrite(filename,{'Final frame treated'},'Feuil2','A7');
 xlswrite(filename,{'Chosen number of frames'},'Feuil2','A8');
-xlswrite(filename,{'Nb of treated frames'},'Feuil2','A9');
-xlswrite(filename,{'Nb of empty frames'},'Feuil2','A10');
+xlswrite(filename,{'Nb of empty frames'},'Feuil2','A9');
+xlswrite(filename,{'Nb of treated frames'},'Feuil2','A10');
+xlswrite(filename,{'Percent decorrelation threshold (%)'},'Feuil2','A11');
+xlswrite(filename,{'Decorrelation threshold (s)'},'Feuil2','A12');
 %
 xlswrite(filename,{'FLAGELLUM INFO'},'Feuil2','A11');
 xlswrite(filename,{'Initial diameter (µm)'},'Feuil2','A12');
@@ -494,8 +557,16 @@ writematrix(FSav,filename,'Sheet',2,'Range','B5');
 writematrix(in_frame,filename,'Sheet',2,'Range','B6');
 writematrix(fin_frame,filename,'Sheet',2,'Range','B7');
 writematrix(total,filename,'Sheet',2,'Range','B8');
-writematrix(xy.nframe,filename,'Sheet',2,'Range','B9');
-writematrix(length(xy.emptyframe),filename,'Sheet',2,'Range','B10');
+writematrix(length(xy.emptyframe),filename,'Sheet',2,'Range','B9');
+writematrix(xy.nframe,filename,'Sheet',2,'Range','B10');
+writematrix(Percent_threshold1,filename,'Sheet',2,'Range','B11');
+writematrix(Percent1*FSav,filename,'Sheet',2,'Range','B12');
+
+
+xlswrite(filename,{'Nb of empty frames'},'Feuil2','A9');
+xlswrite(filename,{'Nb of treated frames'},'Feuil2','A10');
+xlswrite(filename,{'Percent decorrelation threshold (%)'},'Feuil2','A11');
+xlswrite(filename,{'Decorrelation threshold (s)'},'Feuil2','A12');
 %
 writematrix(in_diameter,filename,'Sheet',2,'Range','B12');
 writematrix(in_fil_length,filename,'Sheet',2,'Range','B13');
@@ -537,7 +608,7 @@ writematrix(npnts,filename,'Sheet',3,'Range','B13');
 
 % GIVING NAMES TO THE EXCEL SHEETS
 e = actxserver('Excel.Application'); % # open Activex server
-ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified code\additionaldata.xlsx'); % # open file (enter full path!)
+ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified_newcode\additionaldata.xlsx'); % # open file (enter full path!)
 hWorksheet1 = ewb.Worksheets.Item(1);
 hWorksheet2 = ewb.Worksheets.Item(2);
 hWorksheet3 = ewb.Worksheets.Item(3);

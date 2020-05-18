@@ -29,17 +29,26 @@ filename = 'essentialdata.xlsx';
 Missingpercentage = length(xy.emptyframe)/total*100;
 Diameter = in_diameter;
 Chosen_length = fil_length;
-Fivepercent_averagelength = Lav5MIC;
+Percent_averagelength = Lav5MIC;
 Shear_rate = gammadot;
-Decorrthreshold = fivepercent * FSav;
-Maxdecorrduration = Sum * FSav;
-if Maxdecorrduration >= Decorrthreshold
-    Decorrelation = 'YES';
+Percent_threshold1 = Percent_threshold1;
+Decorrthreshold1 = Decorrthreshold1;
+Maxdecorrduration1 = Maxdecorrduration1;
+if Maxdecorrduration1 >= Decorrthreshold1
+    Decorrelation1 = 'YES';
 else
-    Decorrelation = 'NO';
+    Decorrelation1 = 'NO';
 end
-Limitcorrtime = Limitcorrtime;
-Limitcorrtimesmooth = tau;
+Limitcorrtime1 = Limitcorrtime1;
+Limitcorrtimesmooth1 = tau1;
+if ne(Limitcorrtime2,0) == 0
+    Decorrelation2 = 'YES';
+    Limitcorrtimesmooth2 = tau2;
+else
+    Decorrelation2 = 'NO';
+    Limitcorrtimesmooth2 = 0;
+end
+Bound2 = Bound2;
 tau_r = tau_r;
 tJ = tJ;
 
@@ -51,36 +60,59 @@ xlswrite(filename,{'Chosen length (µm)'},'Feuil1','A4');
 xlswrite(filename,{'Max 5% average length (µm)'},'Feuil1','A5');
 %
 xlswrite(filename,{'DATA'},'Feuil1','A6');
-xlswrite(filename,{'Decorrelation'},'Feuil1','A7');
-xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','A8');
-xlswrite(filename,{'Decorrelation threshold (s)'},'Feuil1','A9');
-xlswrite(filename,{'Maximal decorrelation duration vs. threshold (%)'},'Feuil1','A10');
-xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A11');
-xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A12');
-xlswrite(filename,{'tau_r (s)'},'Feuil1','A13');
-xlswrite(filename,{'tJ (s)'},'Feuil1','A14');
+xlswrite(filename,{'UNDER-ESTIMATE (Method 1)'},'Feuil1','A7');
+xlswrite(filename,{'Decorrelation'},'Feuil1','A8');
+xlswrite(filename,{'Confidence bounds'},'Feuil1','A9');
+xlswrite(filename,{'Percent decorrelation threshold (%)'},'Feuil1','A10');
+xlswrite(filename,{'Decorrelation threshold (s)'},'Feuil1','A11');
+xlswrite(filename,{'Maximal decorrelation duration vs. threshold (%)'},'Feuil1','A12');
+xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A13');
+xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A14');
+
+xlswrite(filename,{'OVER-ESTIMATE (Method 2)'},'Feuil1','A15');
+xlswrite(filename,{'Decorrelation'},'Feuil1','A16');
+xlswrite(filename,{'Confidence bounds'},'Feuil1','A17');
+xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A18');
+xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A19');
+
+xlswrite(filename,{'GENERAL'},'Feuil1','A20');
+xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','A21');
+xlswrite(filename,{'tau_r (s)'},'Feuil1','A22');
+xlswrite(filename,{'tJ (s)'},'Feuil1','A23');
 
 % WRITING OUT VALUES
 writematrix(Missingpercentage,filename,'Sheet',1,'Range','B2');
 writematrix(Diameter,filename,'Sheet',1,'Range','B3');
 writematrix(Chosen_length,filename,'Sheet',1,'Range','B4');
-writematrix(Fivepercent_averagelength,filename,'Sheet',1,'Range','B5');
+writematrix(Percent_averagelength,filename,'Sheet',1,'Range','B5');
 %
-writematrix(Decorrelation,filename,'Sheet',1,'Range','B7');
-writematrix(Shear_rate,filename,'Sheet',1,'Range','B8');
-writematrix(Decorrthreshold,filename,'Sheet',1,'Range','B9');
-writematrix(Maxdecorrduration,filename,'Sheet',1,'Range','B10');
-writematrix(Limitcorrtime,filename,'Sheet',1,'Range','B11');
-writematrix(Limitcorrtimesmooth,filename,'Sheet',1,'Range','B12');
-writematrix(tau_r,filename,'Sheet',1,'Range','B13');
-writematrix(tJ,filename,'Sheet',1,'Range','B14');
+writematrix(Decorrelation1,filename,'Sheet',1,'Range','B8');
+writematrix(Bound1,filename,'Sheet',1,'Range','B9');
+writematrix(Percent_threshold1,filename,'Sheet',1,'Range','B10');
+writematrix(Decorrthreshold1,filename,'Sheet',1,'Range','B11');
+writematrix(Maxdecorrduration1,filename,'Sheet',1,'Range','B12');
+writematrix(Limitcorrtime1,filename,'Sheet',1,'Range','B13');
+writematrix(Limitcorrtimesmooth1,filename,'Sheet',1,'Range','B14');
+%
+writematrix(Decorrelation2,filename,'Sheet',1,'Range','B16');
+writematrix(Bound2,filename,'Sheet',1,'Range','B17');
+writematrix(Limitcorrtime2,filename,'Sheet',1,'Range','B18');
+writematrix(Limitcorrtimesmooth2,filename,'Sheet',1,'Range','B19');
+%
+writematrix(Shear_rate,filename,'Sheet',1,'Range','B21');
+writematrix(tau_r,filename,'Sheet',1,'Range','B22');
+writematrix(tJ,filename,'Sheet',1,'Range','B23');
+
 
 % GIVING NAMES TO THE EXCEL SHEETS
 e = actxserver('Excel.Application'); % # open Activex server
-ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified code\essentialdata.xlsx'); % # open file (enter full path!)
+ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified_newcode\essentialdata.xlsx'); % # open file (enter full path!)
 hWorksheet = ewb.Worksheets.Item(1);
 hWorksheet.Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - FRAMES & FLAGELLUM
 hWorksheet.Range('A6:B6').Interior.Color=hex2dec('F0F4C3'); % # color row A6 - DATA
+hWorksheet.Range('A7:B7').Interior.Color=hex2dec('d8edeb'); % # color row A7 - DATA - Under-estimate
+hWorksheet.Range('A14:B14').Interior.Color=hex2dec('d8edeb'); % # color row A14 - DATA - Over-estimate
+hWorksheet.Range('A19:B19').Interior.Color=hex2dec('d8edeb'); % # color row A19 - DATA - General
 hWorksheet.Columns.Item(1).columnWidth = 50; % width of the first column
 ewb.Save;
 ewb.Close(false)
