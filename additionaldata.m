@@ -1,5 +1,5 @@
 %% FAUSTINE'S FILE
-%% PRODUCE PLOTS & AN EXCEL FILE WITH DATA NECESSARY FOR COMPARING JEFFERY VS. BROWNIAN MOTION
+%% PRODUCE PLOTS & AN EXCEL FILE WITH ALL DATA NECESSARY FOR COMPARING JEFFERY VS. BROWNIAN MOTION
 
 %~~~~ PARAMETERS THAT ARE RECORDED ARE:
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,7 +93,7 @@ Time = transpose([1:length(xy.frame)]*FSav);
 in_diameter = 0.912;
 in_fil_length = 8.076;
 fil_length = in_fil_length;
-lambda = fil_length/diameter;
+lambda = fil_length/in_diameter;
 
 % ON THE XY PLANE
 % COORDINATES & LENGTHS (px and microns) AND ANGLE
@@ -120,11 +120,11 @@ LmeanMIC = sum(LpMIC)/xy.nframe;
 % NEW CALCULATION OF FILAMENT LENGTH AND ASPECT RATIO BASED ON THE 5% MAXIMAL VALUES OF Lp
 if Lav5MIC > fil_length
     fil_length = Lav5MIC;
-    lambda = fil_length/diameter;
+    lambda = fil_length/in_diameter;
     disp('Initial filament length was replaced by Lav5MIC.')
 else
     fil_length = fil_length;
-    lambda = fil_length/diameter;
+    lambda = fil_length/in_diameter;
     disp('Initial filament length was conserved.')
 end
 
@@ -193,9 +193,9 @@ for j = 1 : xy.nframe
         end
         if Sum == fivepercent-1 %When Ycorr has been ~ 0 for a while (5% of total number of frames), decorrelation is supposed to have happened.
             Limitcorrframe = Indexeones(i-fivepercent); %Stores the frame index at which Ycorr starts being 0 for a long time
-        elseif Sum > fivepercent+1
+        elseif Sum > fivepercent-1
             Difference = Sum - fivepercent+1;
-            Limitcorrframe = Indexones(i-fivepercent-Difference);
+            Limitcorrframe = Indexones(i-fivepercent+1-Difference);
         else
             Limitcorrframe = 0;
         end
@@ -206,7 +206,7 @@ if Limitcorrframe == 0
     Limitcorrtime = 0;
     input_plotautocorr = input('Decorrelation did not occur. Do you still want to plot the autocorr function? Press: \n 1 = yes \n 2 = no \n');
     if input_plotautocorr == 1
-        input_NbofLags = input('Choose your decorrelation frame+1 : \n');
+        input_NbofLags = input('Choose your decorrelation frame-1 : \n');
         Ycorr = autocorr(Cm,'Numlags',input_NbofLags-1);
         Xcorr = (1:input_NbofLags)*FSav;
         T_Ycorr = transpose(Ycorr);
@@ -246,7 +246,7 @@ eta = 10^-3;
 %       * g and S coefficients adapted to prolate ellipsoids (Nuris'formula eq. 11 and 12)
 %       * Dr diffusion coefficient for a prolate ellipsoid; Nuris' formula (eq. 10)
 a =(fil_length/2)*10^(-6); 
-b = (diameter/2)*10^-6; 
+b = (in_diameter/2)*10^-6; 
 p = a/b;
 V = (4*pi*a*(b^2))/3; 
 S = (1 / sqrt(p^2-1)) * log(p+sqrt(p^2-1));
@@ -497,7 +497,7 @@ writematrix(total,filename,'Sheet',2,'Range','B8');
 writematrix(xy.nframe,filename,'Sheet',2,'Range','B9');
 writematrix(length(xy.emptyframe),filename,'Sheet',2,'Range','B10');
 %
-writematrix(diameter,filename,'Sheet',2,'Range','B12');
+writematrix(in_diameter,filename,'Sheet',2,'Range','B12');
 writematrix(in_fil_length,filename,'Sheet',2,'Range','B13');
 writematrix(LmeanMIC,filename,'Sheet',2,'Range','B14');
 writematrix(Lav5MIC,filename,'Sheet',2,'Range','B15');
@@ -538,12 +538,17 @@ writematrix(npnts,filename,'Sheet',3,'Range','B13');
 % GIVING NAMES TO THE EXCEL SHEETS
 e = actxserver('Excel.Application'); % # open Activex server
 ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified code\additionaldata.xlsx'); % # open file (enter full path!)
-ewb.Worksheets.Item(1).Name = 'Data'; % # rename 1st sheet
-ewb.Worksheets.Item(2).Name = 'Frames and Flagellum'; % # rename 2nd sheet
-ewb.Worksheets.Item(3).Name = 'Code Parameters'; % # rename 3rd sheet
-ewb.Worksheets.Item(2).Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - FRAMES in sheet 2
-ewb.Worksheets.Item(2).Range('A11:B11').Interior.Color=hex2dec('F0F4C3'); % # color row A11 - FLAGELLUM in sheet 2
-ewb.Worksheets.Item(3).Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - CODE in sheet 3
+hWorksheet1 = ewb.Worksheets.Item(1);
+hWorksheet2 = ewb.Worksheets.Item(2);
+hWorksheet3 = ewb.Worksheets.Item(3);
+hWorksheet1.Name = 'Data'; % # rename 1st sheet
+hWorksheet2.Name = 'Frames and Flagellum'; % # rename 2nd sheet
+hWorksheet3.Name = 'Code Parameters'; % # rename 3rd sheet
+hWorksheet2.Columns.Item(1).columnWidth = 50; % width of the first column, 2nd sheet
+hWorksheet3.Columns.Item(1).columnWidth = 50; % width of the first column, 3rd sheet
+hWorksheet2.Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - FRAMES in sheet 2
+hWorksheet2.Range('A11:B11').Interior.Color=hex2dec('F0F4C3'); % # color row A11 - FLAGELLUM in sheet 2
+hWorksheet3.Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - CODE in sheet 3
 ewb.Save;
 ewb.Close(false)
 e.Quit
