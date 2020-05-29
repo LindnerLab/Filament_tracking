@@ -107,6 +107,7 @@ for j = 1 : xy.nframe
     xsi(j) = atan(ny(j)/nx(j));
     xsiindeg(j) = xsi(j) * 180 / pi;
 end
+
 % REAL LENGTH
 fivepercent = round((5/100) * xy.nframe);
 L5 = maxk(transpose(Lp),fivepercent);
@@ -158,7 +159,103 @@ for j = 1 : xy.nframe
     UNY(j) = Unz(j);
     UNZ(j) = Uny(j);
 end
-    
+
+% SMOOTHING DATA WITH SMOOTHDATA: GAUSSIAN, MOVMEAN, SGOLAY
+%
+% 1) LpMIC
+Gaussian10_LpMIC = smoothdata(LpMIC,'gaussian',10);
+Movmean10_LpMIC = smoothdata(LpMIC,'movmean',10);
+Sgolay20_LpMIC = smoothdata(LpMIC,'sgolay',20);
+figure()
+hold on
+title('LpMIC - Smoothing methods')
+plot(Time,LpMIC)
+plot(Time,Gaussian10_LpMIC)
+plot(Time,Movmean10_LpMIC)
+plot(Time,Sgolay20_LpMIC)
+xlabel('Time (s)')
+ylabel('Lp (µm)')
+legend('Lp','gaussian (10)','movmean (10)','sgolay (20)')
+hold off
+saveas(gcf,'SmoothingFIG_LpMIC','pdf');
+saveas(gcf,'SmoothingFIG_LpMIC','fig');
+%
+% 2) Unx
+Gaussian10_Unx = smoothdata(Unx,'gaussian',10);
+Movmean10_Unx = smoothdata(Unx,'movmean',10);
+Sgolay20_Unx = smoothdata(Unx,'sgolay',20);
+figure()
+hold on
+title('Unx - Smoothing methods')
+plot(Time,Unx)
+plot(Time,Gaussian10_Unx)
+plot(Time,Movmean10_Unx)
+plot(Time,Sgolay20_Unx)
+xlabel('Time (s)')
+ylabel('Unx')
+legend('Unx','gaussian (10)','movmean (10)','sgolay (20)')
+hold off
+saveas(gcf,'SmoothingFIG_Unx','pdf');
+saveas(gcf,'SmoothingFIG_Unx','fig');
+%
+% 3) UNY
+Gaussian10_UNY = smoothdata(UNY,'gaussian',10);
+Movmean10_UNY = smoothdata(UNY,'movmean',10);
+Sgolay20_UNY = smoothdata(UNY,'sgolay',20);
+figure()
+hold on
+title('UNY - Smoothing methods')
+plot(Time,UNY)
+plot(Time,Gaussian10_UNY)
+plot(Time,Movmean10_UNY)
+plot(Time,Sgolay20_UNY)
+xlabel('Time (s)')
+ylabel('UNY')
+legend('UNY','gaussian (10)','movmean (10)','sgolay (20)')
+hold off
+saveas(gcf,'SmoothingFIG_UNY','pdf');
+saveas(gcf,'SmoothingFIG_UNY','fig');
+%
+% 4) UNZ
+Gaussian10_UNZ = smoothdata(UNZ,'gaussian',10);
+Movmean10_UNZ = smoothdata(UNZ,'movmean',10);
+Sgolay20_UNZ = smoothdata(UNZ,'sgolay',20);
+figure()
+hold on
+title('UNZ - Smoothing methods')
+plot(Time,UNZ)
+plot(Time,Gaussian10_UNZ)
+plot(Time,Movmean10_UNZ)
+plot(Time,Sgolay20_UNZ)
+xlabel('Time (s)')
+ylabel('UNZ')
+legend('UNZ','gaussian (10)','movmean (10)','sgolay (20)')
+hold off
+saveas(gcf,'SmoothingFIG_UNZ','pdf');
+saveas(gcf,'SmoothingFIG_UNZ','fig');
+
+% SMOOTHING DECISION
+input_smoothingmethod = input('Which smoothing method do you want? Press: \n 1 = Gaussian (10) \n 2 = Movmean (10) \n 3 = Sgolay (20) \n');
+if input_smoothingmethod == 1
+    Smoothingmethod = 'Gaussian';
+    LpMIC = Gaussian10_LpMIC;
+    Unx = Gaussian10_Unx;
+    UNY = Gaussian10_UNY;
+    UNZ = Gaussian10_UNZ;
+elseif input_smoothingmethod == 2
+    Smoothingmethod = 'Movmean';
+    LpMIC = Movmean10_LpMIC;
+    Unx = Movmean10_Unx;
+    UNY = Movmean10_UNY;
+    UNZ = Movmean10_UNZ;
+else
+    Smoothingmethod = 'Savitzky-Golay';
+    LpMIC = Sgolay20_LpMIC;
+    Unx = Sgolay20_Unx;
+    UNY = Sgolay20_UNY;
+    UNZ = Sgolay20_UNZ;
+end
+
 % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
 lambda = fil_length/in_diameter;
 for j = 1 : xy.nframe
@@ -492,10 +589,11 @@ xlswrite(filename,{'UNDER-estimated decorr time (1) (s)'},'Feuil1','N1');
 xlswrite(filename,{'OVER-estimated decorr time (2) (s)'},'Feuil1','O1');
 xlswrite(filename,{'Expofit1 coeff tau1 (s)'},'Feuil1','P1');
 xlswrite(filename,{'Expofit2 coeff tau2 (s)'},'Feuil1','Q1');
-xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','R1');
+xlswrite(filename,{'Smoothing method'},'Feuil1','R1');
 xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','S1');
-xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','T1');
-xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','U1');
+xlswrite(filename,{'Rot. diff. time tau_r (s)'},'Feuil1','T1');
+xlswrite(filename,{'Jeff. period tJ (s)'},'Feuil1','U1');
+xlswrite(filename,{'Losing memory ratio tau/tJ'},'Feuil1','V1');
 
 % FOR HORIZONTAL HELE-SHAW CELLS
 %xlswrite(filename,{'Horiz. Jeff. C'},'Feuil1','K1');
@@ -519,10 +617,11 @@ writematrix(Limitcorrtime1,filename,'Sheet',1, 'Range', 'N2');
 writematrix(Limitcorrtime2,filename,'Sheet',1, 'Range', 'O2');
 writematrix(tau1,filename,'Sheet',1,'Range','P2');
 writematrix(tau2,filename,'Sheet',1, 'Range', 'Q2');
-writematrix(gammadot,filename,'Sheet',1,'Range','R2');
-writematrix(tau_r,filename,'Sheet',1,'Range','S2');
-writematrix(tJ,filename,'Sheet',1,'Range','T2');
-writematrix(Losingmemory,filename,'Sheet',1,'Range','U2');
+writematrix(Smoothingmethod,filename,'Sheet',1,'Range','R2');
+writematrix(gammadot,filename,'Sheet',1,'Range','S2');
+writematrix(tau_r,filename,'Sheet',1,'Range','T2');
+writematrix(tJ,filename,'Sheet',1,'Range','U2');
+writematrix(Losingmemory,filename,'Sheet',1,'Range','V2');
 % FOR HORIZONTAL HELE-SHAW CELLS
 %writematrix(transpose(Chorizontal),filename,'Sheet',1, 'Range', 'J2'); %for horizontal Hele-Shaw cells
 %
