@@ -242,18 +242,36 @@ if input_smoothingmethod == 1
     Unx = Gaussian10_Unx;
     UNY = Gaussian10_UNY;
     UNZ = Gaussian10_UNZ;
+    Uny = UNZ;
+    Unz = UNY;
+    phi = smoothdata(phi,'gaussian',10);
+    phiindeg = smoothdata(phiindeg,'gaussian',10);
+    theta = smoothdata(theta,'gaussian',10);
+    xsi = smoothdata(xsi,'gaussian',10);
 elseif input_smoothingmethod == 2
     Smoothingmethod = 'Movmean';
     LpMIC = Movmean10_LpMIC;
     Unx = Movmean10_Unx;
     UNY = Movmean10_UNY;
     UNZ = Movmean10_UNZ;
+    Uny = UNZ;
+    Unz = UNY;
+    phi = smoothdata(phi,'movmean',10);
+    phiindeg = smoothdata(phiindeg,'movmean',10);
+    theta = smoothdata(theta,'movmean',10);
+    xsi = smoothdata(xsi,'movmean',10);
 else
     Smoothingmethod = 'Savitzky-Golay';
     LpMIC = Sgolay20_LpMIC;
     Unx = Sgolay20_Unx;
     UNY = Sgolay20_UNY;
     UNZ = Sgolay20_UNZ;
+    Uny = UNZ;
+    Unz = UNY;
+    phi = smoothdata(phi,'sgolay',20);
+    phiindeg = smoothdata(phiindeg,'sgolay',20);
+    theta = smoothdata(theta,'sgolay',20);
+    xsi = smoothdata(xsi,'sgolay',20);
 end
 
 % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
