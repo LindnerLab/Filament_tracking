@@ -88,10 +88,9 @@ Time = transpose([1:length(xy.frame)]*FSav);
 % Batch 3: diameter = 0.69; fil_length = 8.77;
 % Batch 4: diameter = 0.869; fil_length = 10.215;
 % Batch 5: diameter = 0.977; fil_length = 7.887;
-% Batch 6: diameter = 0.834; fil_length = 4.844;
-% Batch 7: diameter = 0.886; fil_length = 7.852;
-in_diameter = 0.912;
-in_fil_length = 8.076;
+% Standard diameter, normal waveform = 0.5µm (Turner et al., 2000)
+in_diameter = 0.5;
+in_fil_length = 8.686;
 fil_length = in_fil_length;
 lambda = fil_length/in_diameter;
 
@@ -111,6 +110,7 @@ end
 % REAL LENGTH
 fivepercent = round((5/100) * xy.nframe);
 L5 = maxk(transpose(Lp),fivepercent);
+L5MIC = maxk(transpose(LpMIC),fivepercent);
 Lav5 = sum(L5)/fivepercent;
 Lav5MIC = Lav5 * 100 / 1024;
 %
@@ -118,7 +118,7 @@ Lmean = sum(Lp)/xy.nframe;
 LmeanMIC = sum(LpMIC)/xy.nframe;
 
 % NEW CALCULATION OF FILAMENT LENGTH AND ASPECT RATIO BASED ON THE 5% MAXIMAL VALUES OF Lp
-if Lav5MIC > fil_length
+if Lav5MIC - std(L5MIC) < fil_length < Lav5MIC + std(L5MIC)
     fil_length = Lav5MIC;
     lambda = fil_length/in_diameter;
     disp('Initial filament length was replaced by Lav5MIC.')
@@ -160,6 +160,7 @@ for j = 1 : xy.nframe
 end
     
 % JEFFERY CONSTANT C AND MODIFIED CONSTANT Cm
+lambda = fil_length/in_diameter;
 for j = 1 : xy.nframe
     CAndreas(j) = sqrt(Unx(j)^2 + (UNZ(j)^2/lambda^2))/UNY(j);
     Cm(j) = sign(CAndreas(j))/(1+abs(CAndreas(j)));
@@ -227,8 +228,8 @@ Limitcorrframe2 = j+1;
 
 % ** CALCULATE BOTH (1) AND (2) CORRELATION TIME AND PLOT
 Maxdecorrduration1 = (Sum+1)*FSav;
-Fitstart1 = 20;
-Fitstart2 = 20;
+Fitstart1 = 50;
+Fitstart2 = 50;
 % METHOD 2
 if Limitcorrframe2 == 0
     Limitcorrtime2 = 0;
@@ -305,10 +306,10 @@ tau_r = 1/(2*Dr);
 % Batch 3: gammadot = 8.797 using shear_y[250,33]
 % Batch 4: gammadot = 7.58 using shear_y[250,35]
 % Batch 5: gammadot = 13.04 using shear_y[250,26]
-% Batch 6: gammadot = 12.43 using shear_Y[250,27]
-% Batch 7: inconnu 
+% Batch 6: gammadot = 12.43 using shear_y[250,27]
+% Batch 7 (special batch): inconnu
 % !!!! in some cases, gammadot changes with time as the filament deviates from a straight line trajectory
-gammadot = 16.8;
+gammadot = 1.52;
 tJ = (2*pi*(lambda + 1/lambda))/gammadot;
 Losingmemory = tau1/tJ;
 
