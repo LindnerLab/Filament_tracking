@@ -10,6 +10,7 @@
 % ** Diameter (µm) = initial filament diameter (measured by hand)
 % ** Chosenlength (µm) = fil_length (at the end of the additionaldata.m process)
 % ** Lav5MIC (µm) = Average maximal length on 5% maximal Lp values
+% ** lambda = aspect ratio
 %
 % * DATA
 % ** gammadot (s-1) = shear rate
@@ -29,6 +30,7 @@ filename = 'essentialdata.xlsx';
 Missingpercentage = length(xy.emptyframe)/total*100;
 Diameter = in_diameter;
 Chosen_length = fil_length;
+lambda = lambda;
 Percent_averagelength = Lav5MIC;
 Shear_rate = gammadot;
 Percent_threshold1 = Percent_threshold1;
@@ -58,50 +60,52 @@ xlswrite(filename,{'Missing percentage (%)'},'Feuil1','A2');
 xlswrite(filename,{'Diameter (µm)'},'Feuil1','A3');
 xlswrite(filename,{'Chosen length (µm)'},'Feuil1','A4');
 xlswrite(filename,{'Max 5% average length (µm)'},'Feuil1','A5');
+xlswrite(filename,{'Aspect ratio'},'Feuil1','A6');
 %
-xlswrite(filename,{'DATA'},'Feuil1','A6');
-xlswrite(filename,{'UNDER-ESTIMATE (Method 1)'},'Feuil1','A7');
-xlswrite(filename,{'Decorrelation'},'Feuil1','A8');
-xlswrite(filename,{'Confidence bounds'},'Feuil1','A9');
-xlswrite(filename,{'Percent decorrelation threshold (%)'},'Feuil1','A10');
-xlswrite(filename,{'Decorrelation threshold (s)'},'Feuil1','A11');
-xlswrite(filename,{'Maximal decorrelation duration vs. threshold (%)'},'Feuil1','A12');
-xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A13');
-xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A14');
+xlswrite(filename,{'DATA'},'Feuil1','A7');
+xlswrite(filename,{'UNDER-ESTIMATE (Method 1)'},'Feuil1','A8');
+xlswrite(filename,{'Decorrelation'},'Feuil1','A9');
+xlswrite(filename,{'Confidence bounds'},'Feuil1','A10');
+xlswrite(filename,{'Percent decorrelation threshold (%)'},'Feuil1','A11');
+xlswrite(filename,{'Decorrelation threshold (s)'},'Feuil1','A12');
+xlswrite(filename,{'Maximal decorrelation duration vs. threshold (%)'},'Feuil1','A13');
+xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A14');
+xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A15');
 
-xlswrite(filename,{'OVER-ESTIMATE (Method 2)'},'Feuil1','A15');
-xlswrite(filename,{'Decorrelation'},'Feuil1','A16');
-xlswrite(filename,{'Confidence bounds'},'Feuil1','A17');
-xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A18');
-xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A19');
+xlswrite(filename,{'OVER-ESTIMATE (Method 2)'},'Feuil1','A16');
+xlswrite(filename,{'Decorrelation'},'Feuil1','A17');
+xlswrite(filename,{'Confidence bounds'},'Feuil1','A18');
+xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A19');
+xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A20');
 
-xlswrite(filename,{'GENERAL'},'Feuil1','A20');
-xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','A21');
-xlswrite(filename,{'tau_r (s)'},'Feuil1','A22');
-xlswrite(filename,{'tJ (s)'},'Feuil1','A23');
+xlswrite(filename,{'GENERAL'},'Feuil1','A21');
+xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','A22');
+xlswrite(filename,{'tau_r (s)'},'Feuil1','A23');
+xlswrite(filename,{'tJ (s)'},'Feuil1','A24');
 
 % WRITING OUT VALUES
 writematrix(Missingpercentage,filename,'Sheet',1,'Range','B2');
 writematrix(Diameter,filename,'Sheet',1,'Range','B3');
 writematrix(Chosen_length,filename,'Sheet',1,'Range','B4');
 writematrix(Percent_averagelength,filename,'Sheet',1,'Range','B5');
+writematrix(lambda,filename,'Sheet',1,'Range','B6');
 %
-writematrix(Decorrelation1,filename,'Sheet',1,'Range','B8');
-writematrix(Bound1,filename,'Sheet',1,'Range','B9');
-writematrix(Percent_threshold1,filename,'Sheet',1,'Range','B10');
-writematrix(Decorrthreshold1,filename,'Sheet',1,'Range','B11');
-writematrix(Maxdecorrduration1,filename,'Sheet',1,'Range','B12');
-writematrix(Limitcorrtime1,filename,'Sheet',1,'Range','B13');
-writematrix(Limitcorrtimesmooth1,filename,'Sheet',1,'Range','B14');
+writematrix(Decorrelation1,filename,'Sheet',1,'Range','B9');
+writematrix(Bound1,filename,'Sheet',1,'Range','B10');
+writematrix(Percent_threshold1,filename,'Sheet',1,'Range','B11');
+writematrix(Decorrthreshold1,filename,'Sheet',1,'Range','B12');
+writematrix(Maxdecorrduration1,filename,'Sheet',1,'Range','B13');
+writematrix(Limitcorrtime1,filename,'Sheet',1,'Range','B14');
+writematrix(Limitcorrtimesmooth1,filename,'Sheet',1,'Range','B15');
 %
-writematrix(Decorrelation2,filename,'Sheet',1,'Range','B16');
-writematrix(Bound2,filename,'Sheet',1,'Range','B17');
-writematrix(Limitcorrtime2,filename,'Sheet',1,'Range','B18');
-writematrix(Limitcorrtimesmooth2,filename,'Sheet',1,'Range','B19');
+writematrix(Decorrelation2,filename,'Sheet',1,'Range','B17');
+writematrix(Bound2,filename,'Sheet',1,'Range','B18');
+writematrix(Limitcorrtime2,filename,'Sheet',1,'Range','B19');
+writematrix(Limitcorrtimesmooth2,filename,'Sheet',1,'Range','B20');
 %
-writematrix(Shear_rate,filename,'Sheet',1,'Range','B21');
-writematrix(tau_r,filename,'Sheet',1,'Range','B22');
-writematrix(tJ,filename,'Sheet',1,'Range','B23');
+writematrix(Shear_rate,filename,'Sheet',1,'Range','B22');
+writematrix(tau_r,filename,'Sheet',1,'Range','B23');
+writematrix(tJ,filename,'Sheet',1,'Range','B24');
 
 
 % GIVING NAMES TO THE EXCEL SHEETS
@@ -109,10 +113,10 @@ e = actxserver('Excel.Application'); % # open Activex server
 ewb = e.Workbooks.Open('C:\Users\Faustine\Documents\POSTDOC\Image treatment\Francesco - Matlab\Modified_newcode\essentialdata.xlsx'); % # open file (enter full path!)
 hWorksheet = ewb.Worksheets.Item(1);
 hWorksheet.Range('A1:B1').Interior.Color=hex2dec('F0F4C3'); % # color row A1 - FRAMES & FLAGELLUM
-hWorksheet.Range('A6:B6').Interior.Color=hex2dec('F0F4C3'); % # color row A6 - DATA
-hWorksheet.Range('A7:B7').Interior.Color=hex2dec('d8edeb'); % # color row A7 - DATA - Under-estimate
-hWorksheet.Range('A15:B15').Interior.Color=hex2dec('d8edeb'); % # color row A15 - DATA - Over-estimate
-hWorksheet.Range('A20:B20').Interior.Color=hex2dec('d8edeb'); % # color row A20 - DATA - General
+hWorksheet.Range('A7:B7').Interior.Color=hex2dec('F0F4C3'); % # color row A7 - DATA
+hWorksheet.Range('A8:B8').Interior.Color=hex2dec('d8edeb'); % # color row A8 - DATA - Under-estimate
+hWorksheet.Range('A16:B16').Interior.Color=hex2dec('d8edeb'); % # color row A16 - DATA - Over-estimate
+hWorksheet.Range('A21:B21').Interior.Color=hex2dec('d8edeb'); % # color row A21 - DATA - General
 hWorksheet.Columns.Item(1).columnWidth = 50; % width of the first column
 ewb.Save;
 ewb.Close(false)
