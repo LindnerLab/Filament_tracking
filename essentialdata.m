@@ -13,7 +13,7 @@
 % ** lambda = aspect ratio
 %
 % * DATA
-% ** gammadot (s-1) = shear rate
+% ** gammadot (s-1) = initial shear rate
 % ** Decorrthreshold (s) = 5% IN A ROW of the autocorr values of total number of frames included in [-0.005;0.005]); sufficient to say that decorrelation has occurred.
 % ** Maxdecorrduration (s) = maximal time when autocorr values remain IN A ROW in [-0.005;0.005].
 % ** Decorrelation (Y/N) = decorrelation has occurred or not (based on Decorrthreshold and Maxdecorrduration)
@@ -32,6 +32,7 @@ Diameter = in_diameter;
 Chosen_length = fil_length;
 lambda = lambda;
 Percent_averagelength = Lav5MIC;
+Smoothingmethod = Smoothingmethod;
 Shear_rate = gammadot;
 Percent_threshold1 = Percent_threshold1;
 Decorrthreshold1 = Decorrthreshold1;
@@ -79,9 +80,10 @@ xlswrite(filename,{'Decorrelation time (s)'},'Feuil1','A19');
 xlswrite(filename,{'Smooth decorrelation time tau (s)'},'Feuil1','A20');
 
 xlswrite(filename,{'GENERAL'},'Feuil1','A21');
-xlswrite(filename,{'Shear rate (s-1)'},'Feuil1','A22');
-xlswrite(filename,{'tau_r (s)'},'Feuil1','A23');
-xlswrite(filename,{'tJ (s)'},'Feuil1','A24');
+xlswrite(filename,{'Smoothing method'},'Feuil1','A22');
+xlswrite(filename,{'Initial Shear rate (s-1)'},'Feuil1','A23');
+xlswrite(filename,{'tau_r (s)'},'Feuil1','A24');
+xlswrite(filename,{'tJ (s)'},'Feuil1','A25');
 
 % WRITING OUT VALUES
 writematrix(Missingpercentage,filename,'Sheet',1,'Range','B2');
@@ -103,9 +105,10 @@ writematrix(Bound2,filename,'Sheet',1,'Range','B18');
 writematrix(Limitcorrtime2,filename,'Sheet',1,'Range','B19');
 writematrix(Limitcorrtimesmooth2,filename,'Sheet',1,'Range','B20');
 %
-writematrix(Shear_rate,filename,'Sheet',1,'Range','B22');
-writematrix(tau_r,filename,'Sheet',1,'Range','B23');
-writematrix(tJ,filename,'Sheet',1,'Range','B24');
+writematrix(Smoothingmethod,filename,'Sheet',1,'Range','B22');
+writematrix(Shear_rate,filename,'Sheet',1,'Range','B23');
+writematrix(tau_r,filename,'Sheet',1,'Range','B24');
+writematrix(tJ,filename,'Sheet',1,'Range','B25');
 
 
 % GIVING NAMES TO THE EXCEL SHEETS
